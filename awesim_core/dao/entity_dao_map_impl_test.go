@@ -1,4 +1,4 @@
-package awesim_core
+package dao_test
 
 import "testing"
 import (
@@ -10,7 +10,7 @@ func TestEntityDaoMapImpl(t *testing.T) {
 	const mockAttributeOne string = "mock_attribute_one"
 	const valueOne string = "a value"
 
-	testDao := entity.EntityDaoMapImpl{}
+	testDao := NewEntityDaoMapImpl()
 	testDao.SetStringAttribute(mockEntityOne,mockAttributeOne,valueOne)
 	var result string = testDao.GetStringAttribute(mockEntityOne,mockAttributeOne)
 	if (result != valueOne) {
