@@ -22,9 +22,9 @@ func (game *Game) Run() error {
 
 func main() {
 	entityDao := dao.NewEntityDaoMapImpl()
-	actionDecider := &action_deciders.Random{}
-	timeline := core.Timeline{}
-	actionResolver := &action_resolvers.Incomplete{}
+	actionDecider := &action_deciders.DoNothing{}
+	timeline := &core.Timeline{}
+	actionResolver := &action_resolvers.NoAction{}
 	engine := engine.New(entityDao, actionDecider, timeline, actionResolver)
 	game := NewGame(engine)
 	game.Run()
