@@ -11,8 +11,8 @@ func TestEntityDaoMapImpl(t *testing.T) {
 	const valueOne string = "a value"
 
 	testDao := NewEntityDaoMapImpl()
-	testDao.SetStringAttribute(mockEntityOne,mockAttributeOne,valueOne)
-	var result string = testDao.GetStringAttribute(mockEntityOne,mockAttributeOne)
+	testDao.SetAttribute(mockEntityOne,mockAttributeOne,valueOne)
+	var result string = testDao.GetAttribute(mockEntityOne,mockAttributeOne)
 	if (result != valueOne) {
 		t.Error("Attribute value should be 'a value' but was ", result)
 	}
