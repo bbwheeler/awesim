@@ -39,5 +39,5 @@ func (a *Action) GetDuration() (int64, error) {
 }
 
 func (a *Action) FinishAction() error {
-	return a.dao.RemoveAttribute(a.GetID(), actionStartTick)
+	return a.dao.RemoveAttribute(a.GetID(), actionStartTickAttribute)
 }
