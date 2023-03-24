@@ -4,7 +4,7 @@ type EntityDao interface {
 
 	NewEntity() *Entity
 	GetEntity(id string) *Entity
-	RemoveEntity(entity *Entity) error
+	RemoveEntity(entityID string) error
 
 	GetAttribute(entityId string, attributeId string) (interface{}, error)
 	SetAttribute(entityId string, attributeId string, value interface{}) error

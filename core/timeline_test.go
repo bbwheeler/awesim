@@ -4,7 +4,7 @@ import "testing"
 import mapstore "github.com/bbwheeler/awesim/mapstore"
 import core "github.com/bbwheeler/awesim/core"
 
-func EndToEndTest(t *testing.T) {
+func TestEndToEnd(t *testing.T) {
 	const startTick int64 = int64(1)
 
 	dao := mapstore.NewEntityDaoMapImpl()
@@ -57,6 +57,14 @@ func EndToEndTest(t *testing.T) {
 	err = timeline.SetCurrentTick(startTick+7)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	nextAction, err = timeline.GetPendingAction()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if nextAction == nil {
+		t.Fatalf("Expected next action to be %v but was nil", actionTwo.GetID())
 	}
 
 	if nextAction.GetID() != actionTwo.GetID() {
