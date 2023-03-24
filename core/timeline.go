@@ -49,11 +49,15 @@ func (t *Timeline) GetCurrentTick() (int64, error) {
 		return 0, fmt.Errorf("expected 1 or 0 timelines but got %v", len(timelineEntities))
 	}
 	if len(timelineEntities) < 1 {
-		timelineEntity := NewEntity(t.dao)
-		timelineEntity.SetAttribute(currentTickAttribute, 0)
-		timelineEntities = append(timelineEntities, timelineEntity)
+		return 0, fmt.Errorf("no timeline found, no current tick set")
 	}
-	currentTick, err := timelineEntities[0].GetAttribute(currentTickAttribute)
+	currentTick, err := t.dao.GetAttribute(timelineEntities[0].GetID(),currentTickAttribute)
+	if err != nil {
+		return 0, err
+	}
+	if currentTick == nil {
+		return 0, fmt.Errorf("no current tick")
+	}
 	return currentTick.(int64), err
 }
 

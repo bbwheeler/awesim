@@ -116,5 +116,5 @@ func (e *Engine) ResolveAction(action *core.Action) error {
 	if !resolved {
 		return fmt.Errorf("action %v was not resolved", action)
 	}
-	return e.entityDao.RemoveEntity(&action.Entity)
+	return e.entityDao.RemoveEntity(action.Entity.GetID())
 }
