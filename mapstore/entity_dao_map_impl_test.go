@@ -7,6 +7,38 @@ import "fmt"
 import "sort"
 
 
+func TestRemoveEntity(t *testing.T) {
+	const testAttribute string = "testAttribute"
+	const testAttributeValue string = "test"
+	testDao := mapstore.NewEntityDaoMapImpl()
+
+	entity := testDao.NewEntity()
+	entityID := entity.GetID()
+	
+	err := testDao.SetAttribute(entityID, testAttribute, testAttributeValue)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	att, err := testDao.GetAttribute(entityID, testAttribute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if att != testAttributeValue {
+		t.Fatalf("expected value to be %s but was %v", testAttributeValue, att)
+	}
+
+	err = testDao.RemoveEntity(entityID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	att, err = testDao.GetAttribute(entityID, testAttribute)
+	if err == nil {
+		t.Fatal(err)
+	}
+}
+
 func TestSetAndGetAttribute(t *testing.T) {
 
 	tests := []struct {
@@ -192,8 +224,8 @@ func TestEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	nonResult, err := testDao.GetAttribute(mockEntityTwo,mockAttributeOne)
-	if err != nil {
+	_, err = testDao.GetAttribute(mockEntityTwo,mockAttributeOne)
+	if err == nil {
 		t.Fatal(err)
 	} 
 
@@ -207,9 +239,6 @@ func TestEndToEnd(t *testing.T) {
 	}
 	if (intResult != intValue) {
 		t.Fatalf("Attribute value should be %v but was %v", intValue, intResult)
-	}
-	if (nonResult != nil) {
-		t.Fatalf("Attribute value should be nil but was %v", nonResult)
 	}
 
 	if len(entitiesWithAttributeOne) != 1 {

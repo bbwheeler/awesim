@@ -35,7 +35,12 @@ func (dao *EntityDaoMapImpl) RemoveEntity(id string) error {
 }
 
 func (dao *EntityDaoMapImpl) GetAttribute(entityID string, attributeID string) (interface{}, error) {
-	return dao.attributeMap[getKey(entityID, attributeID)], nil
+	key := getKey(entityID, attributeID)
+	val, ok := dao.attributeMap[key]
+	if !ok {
+		return nil, fmt.Errorf("Entity %s does not have attribute %s", entityID, attributeID)
+	}
+	return val, nil
 }
 
 func (dao *EntityDaoMapImpl) SetAttribute(entityID string, attributeID string, value interface{}) error {
