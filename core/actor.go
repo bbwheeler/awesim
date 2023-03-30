@@ -9,6 +9,7 @@ type Actor struct {
 
 func NewActor(dao EntityDao) *Actor {
 	entity := NewEntity(dao)
+	entity.SetAttribute(IsActorAttribute, true)
 	return AsActor(entity)
 }
 

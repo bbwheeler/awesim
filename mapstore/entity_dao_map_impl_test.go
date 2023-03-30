@@ -6,7 +6,6 @@ import "reflect"
 import "fmt"
 import "sort"
 
-
 func TestRemoveEntity(t *testing.T) {
 	const testAttribute string = "testAttribute"
 	const testAttributeValue string = "test"
@@ -113,8 +112,6 @@ func TestSetAndGetAttribute(t *testing.T) {
 
 }
 
-
-
 func TestGetEntitiesWithAttributeType(t *testing.T) {
 
 	tests := []struct {
@@ -158,12 +155,12 @@ func TestGetEntitiesWithAttributeType(t *testing.T) {
 			const entityPrefix string = "test"
 		
 			testDao := mapstore.NewEntityDaoMapImpl()
-			entitiesWithAttribute := make([]string, test.numberOfEntitiesWithAttribute)
+			var entitiesWithAttribute []string
 
 			testAttribute := "mock attribute"			
 			for i := 0; i < test.numberOfEntitiesWithAttribute; i++ {
 				entityID := fmt.Sprintf("%s%d",entityPrefix,i)
-				entitiesWithAttribute[i] = entityID 
+				entitiesWithAttribute = append(entitiesWithAttribute, entityID) 
 				testDao.SetAttribute(entityID,testAttribute,int64(i))
 				if i%2 != 0 {
 					testDao.SetAttribute(entityID,"dummyAttribute",int64(i+1))
@@ -181,9 +178,9 @@ func TestGetEntitiesWithAttributeType(t *testing.T) {
 				t.Fatalf("Expected entities list with %d values but got %d values", test.numberOfEntitiesWithAttribute, len(entities))
 			}
 
-			resultIDs := make([]string, len(entities))
-			for index, entity := range entities {
-				resultIDs[index] = entity.GetID()
+			var resultIDs []string
+			for _, entity := range entities {
+				resultIDs = append(resultIDs, entity.GetID())
 			}
 
 			if len(resultIDs) != test.numberOfEntitiesWithAttribute {
@@ -198,12 +195,130 @@ func TestGetEntitiesWithAttributeType(t *testing.T) {
 			}		
 		})
 	}
-
-
-
-
-
 }
+
+func TestGetEntitiesWithAttribute(t *testing.T) {
+
+	tests := []struct {
+		name string
+		numberOfEntitiesWithAttributeAndValue int
+		numberOfEntitiesWithAttributeButNotValue int
+		numberOfEntitiesWithoutAttribute int
+	} {
+		{
+			name: "one attribute",
+			numberOfEntitiesWithAttributeAndValue: 1,
+			numberOfEntitiesWithAttributeButNotValue: 0,			
+			numberOfEntitiesWithoutAttribute: 0,
+		},
+		{
+			name: "no attributes",
+			numberOfEntitiesWithAttributeAndValue: 0,
+			numberOfEntitiesWithAttributeButNotValue: 0,
+			numberOfEntitiesWithoutAttribute: 0,
+		},
+		{
+			name: "only other attributes",
+			numberOfEntitiesWithAttributeAndValue: 0,
+			numberOfEntitiesWithAttributeButNotValue: 0,
+			numberOfEntitiesWithoutAttribute: 1,
+		},
+		{
+			name: "one attribute one not",
+			numberOfEntitiesWithAttributeAndValue: 1,
+			numberOfEntitiesWithAttributeButNotValue: 0,
+			numberOfEntitiesWithoutAttribute: 1,
+		},
+		{
+			name: "two attributes",
+			numberOfEntitiesWithAttributeAndValue: 2,
+			numberOfEntitiesWithAttributeButNotValue: 0,
+			numberOfEntitiesWithoutAttribute: 0,
+		},
+		{
+			name: "two attributes one not",
+			numberOfEntitiesWithAttributeAndValue: 2,
+			numberOfEntitiesWithAttributeButNotValue: 0,
+			numberOfEntitiesWithoutAttribute: 1,
+		},
+		{
+			name: "one attribute with different value",
+			numberOfEntitiesWithAttributeAndValue: 0,
+			numberOfEntitiesWithAttributeButNotValue: 1,
+			numberOfEntitiesWithoutAttribute: 0,
+		},
+		{
+			name: "one attribute with correct value and one with different value",
+			numberOfEntitiesWithAttributeAndValue: 1,
+			numberOfEntitiesWithAttributeButNotValue: 1,
+			numberOfEntitiesWithoutAttribute: 0,
+		},
+		{
+			name: "one of each",
+			numberOfEntitiesWithAttributeAndValue: 1,
+			numberOfEntitiesWithAttributeButNotValue: 1,
+			numberOfEntitiesWithoutAttribute: 1,
+		},
+		{
+			name: "three of each",
+			numberOfEntitiesWithAttributeAndValue: 3,
+			numberOfEntitiesWithAttributeButNotValue: 3,
+			numberOfEntitiesWithoutAttribute: 3,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			const entityPrefix string = "test"
+		
+			testDao := mapstore.NewEntityDaoMapImpl()
+			var entitiesWithAttribute []string
+
+			testAttribute := "mock attribute"
+			testAttributeValue := "mock value"			
+			incorrectAttributeValue := "wrong value"			
+			for i := 0; i < test.numberOfEntitiesWithAttributeAndValue; i++ {
+				entityID := fmt.Sprintf("%s%d",entityPrefix,i)
+				entitiesWithAttribute = append(entitiesWithAttribute, entityID) 
+				testDao.SetAttribute(entityID,testAttribute,testAttributeValue)
+				if i%2 != 0 {
+					testDao.SetAttribute(entityID,"dummyAttribute",int64(i+1))
+				}
+			}
+			for i := test.numberOfEntitiesWithAttributeAndValue; i < test.numberOfEntitiesWithAttributeAndValue + test.numberOfEntitiesWithAttributeButNotValue; i++ {
+				testDao.SetAttribute(fmt.Sprintf("%s%d",entityPrefix,i),testAttribute,incorrectAttributeValue)
+			}
+			for i := test.numberOfEntitiesWithAttributeAndValue + test.numberOfEntitiesWithAttributeButNotValue; i < test.numberOfEntitiesWithAttributeAndValue + test.numberOfEntitiesWithAttributeButNotValue + test.numberOfEntitiesWithoutAttribute; i++ {
+				testDao.SetAttribute(fmt.Sprintf("%s%d",entityPrefix,i),"dummyAttribute",int64(i+1))
+			}
+
+			entities, err := testDao.GetEntitiesWithAttribute(testAttribute, testAttributeValue)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(entities) != test.numberOfEntitiesWithAttributeAndValue {
+				t.Fatalf("Expected entities list with %d values but got %d values", test.numberOfEntitiesWithAttributeAndValue, len(entities))
+			}
+
+			var resultIDs []string
+			for _, entity := range entities {
+				resultIDs = append(resultIDs, entity.GetID())
+			}
+
+			if len(resultIDs) != test.numberOfEntitiesWithAttributeAndValue {
+				t.Fatalf("Expected %d results but got %d", test.numberOfEntitiesWithAttributeAndValue, len(resultIDs))
+			}
+
+			sort.Strings(resultIDs)
+			sort.Strings(entitiesWithAttribute)
+
+			if !reflect.DeepEqual(resultIDs, entitiesWithAttribute) {
+				t.Fatalf("expected %v but got %v", entitiesWithAttribute, resultIDs)
+			}		
+		})
+	}
+}
+
+
 
 func TestEndToEnd(t *testing.T) {
 	const mockEntityOne string = "entityOne"

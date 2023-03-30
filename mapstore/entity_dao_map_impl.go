@@ -76,36 +76,24 @@ func (dao *EntityDaoMapImpl) GetEntitiesWithAttribute(attribute string, value in
 }
 
 func (dao *EntityDaoMapImpl) GetEntitiesWithAttributes(attributes map[string]interface{}) ([]*core.Entity, error) {
-	var entitiesForEachAttribute [][]string
 
-	// This can definitely be more efficient than it is
-	for _, attributeValue := range attributes {
-		var entityList []string
-		for key, val := range dao.attributeMap {
-			attKey := getAttributeFromKey(key)
-			if attKey == key && val == attributeValue {
-				 entityList = append(entityList, getEntityIDFromKey(key))
-			}
-		}		
-		entitiesForEachAttribute = append(entitiesForEachAttribute, entityList)
-	}
-
-
-	var finalEntityList []string = nil
-	for _, entities := range entitiesForEachAttribute {
-		if finalEntityList == nil {
-			finalEntityList = entities
-		} else {
-			finalEntityList = intersection(entities,finalEntityList)
+	countMap := make(map[string]int)
+	for daoKey, daoValue := range dao.attributeMap {
+		att := getAttributeFromKey(daoKey)
+		ent := getEntityIDFromKey(daoKey)
+		val, exists := attributes[att]
+		if exists && val == daoValue {
+			countMap[ent] = countMap[ent] + 1
 		}
 	}
 
-	var finalEntities []*core.Entity
-	for _, entityID := range finalEntityList {
-		finalEntities = append(finalEntities, dao.GetEntity(entityID))
+	var ents []*core.Entity
+	for ent, num := range countMap {
+		if num == len(attributes) {
+			ents = append(ents, core.GetEntity(ent, dao))
+		}
 	}
-
-	return finalEntities, nil
+	return ents, nil
 }
 
 func intersection(list ...[]string) []string {
