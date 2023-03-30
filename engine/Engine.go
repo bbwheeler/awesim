@@ -75,8 +75,6 @@ func (e *Engine) GetAllActors() ([]*core.Actor, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("All actors: %v\n", entities)
-	fmt.Printf("Dao: %v\n", e.entityDao)
 	
 	var actors []*core.Actor
 	for _, entity := range entities {
