@@ -1,7 +1,5 @@
 package dao
 
-import "github.com/bbwheeler/awesim/core"
-
 import "strings"
 import "fmt"
 
@@ -15,14 +13,6 @@ func NewEntityDaoMapImpl() *EntityDaoMapImpl {
 	return &EntityDaoMapImpl{
 		attributeMap: attributes,
 	}
-}
-
-func (dao *EntityDaoMapImpl) NewEntity() *core.Entity {
-	return core.NewEntity(dao)
-}
-
-func (dao *EntityDaoMapImpl) GetEntity(id string) *core.Entity {
-	return core.GetEntity(id, dao)
 }
 	
 func (dao *EntityDaoMapImpl) RemoveEntity(id string) error {
@@ -59,24 +49,23 @@ func (dao *EntityDaoMapImpl) RemoveAttribute(entityID string, attributeID string
 	return nil
 }
 
-func (dao *EntityDaoMapImpl) GetEntitiesWithAttributeType(attribute string) ([]*core.Entity, error) {
-	var entities []*core.Entity
+func (dao *EntityDaoMapImpl) GetEntitiesWithAttributeType(attribute string) ([]string, error) {
+	var entities []string
 	for key, _ := range dao.attributeMap {
 		if getAttributeFromKey(key) == attribute {
-			entities = append(entities, dao.GetEntity(getEntityIDFromKey(key)))
+			entities = append(entities, getEntityIDFromKey(key))
 		}
 	}
 	return entities, nil
 }
 
-func (dao *EntityDaoMapImpl) GetEntitiesWithAttribute(attribute string, value interface{}) ([]*core.Entity, error) {
+func (dao *EntityDaoMapImpl) GetEntitiesWithAttribute(attribute string, value interface{}) ([]string, error) {
 	attributeMap := make(map[string]interface{})
 	attributeMap[attribute] = value
 	return dao.GetEntitiesWithAttributes(attributeMap)
 }
 
-func (dao *EntityDaoMapImpl) GetEntitiesWithAttributes(attributes map[string]interface{}) ([]*core.Entity, error) {
-
+func (dao *EntityDaoMapImpl) GetEntitiesWithAttributes(attributes map[string]interface{}) ([]string, error) {
 	countMap := make(map[string]int)
 	for daoKey, daoValue := range dao.attributeMap {
 		att := getAttributeFromKey(daoKey)
@@ -87,10 +76,10 @@ func (dao *EntityDaoMapImpl) GetEntitiesWithAttributes(attributes map[string]int
 		}
 	}
 
-	var ents []*core.Entity
+	var ents []string
 	for ent, num := range countMap {
 		if num == len(attributes) {
-			ents = append(ents, core.GetEntity(ent, dao))
+			ents = append(ents, ent)
 		}
 	}
 	return ents, nil
