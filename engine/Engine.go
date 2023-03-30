@@ -19,21 +19,30 @@ func New(dao core.EntityDao, actionDecider core.ActionDecider, timeline *core.Ti
 	}
 }
 
+func (e *Engine) RunOneTurn() error {
+	currentTick, err := e.timeline.GetCurrentTick()
+	if err != nil {
+		return err
+	}
+	if currentTick <= 0 {
+		return fmt.Errorf("current tick must be non-zero and positive")
+	} 
+	err = e.ExecuteToCurrentTick()
+	if err != nil {
+		return err
+	}
+	err = e.timeline.SetCurrentTick(currentTick+1)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (e *Engine) Run() error {
 	var ended bool
 	for !ended {
-		currentTick, err := e.timeline.GetCurrentTick()
-		if err != nil {
-			return err
-		}
-		if currentTick <= 0 {
-			return fmt.Errorf("current tick must be non-zero and positive")
-		} 
-		err = e.ExecuteToCurrentTick()
-		if err != nil {
-			return err
-		}
-		err = e.timeline.SetCurrentTick(currentTick+1)
+		err := e.RunOneTurn()
 		if err != nil {
 			return err
 		}
@@ -66,7 +75,9 @@ func (e *Engine) GetAllActors() ([]*core.Actor, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Printf("All actors: %v\n", entities)
+	fmt.Printf("Dao: %v\n", e.entityDao)
+	
 	var actors []*core.Actor
 	for _, entity := range entities {
 		actors = append(actors, core.AsActor(entity))
