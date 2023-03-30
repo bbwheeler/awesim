@@ -38,7 +38,7 @@ func TestRemoveEntity(t *testing.T) {
 	}
 }
 
-func TestSetAndGetAttribute(t *testing.T) {
+func TestSetHasAndGetAttribute(t *testing.T) {
 
 	tests := []struct {
 		name string
@@ -97,6 +97,15 @@ func TestSetAndGetAttribute(t *testing.T) {
 			if test.expectSetError {
 				t.Fatalf("Expected error when setting attribute")
 			}
+
+			hasAttribute, err := testDao.HasAttribute(mockEntityOne, mockAttributeOne)
+			if err != nil {
+				t.Fatal("Error from HasAttribute")
+			}
+			if hasAttribute == test.doNotSetAttributeValue {
+				t.Fatalf("HasAttribute was %v but expected %v", hasAttribute, !hasAttribute)
+			}
+
 			val, err := testDao.GetAttribute(mockEntityOne,mockAttributeOne)
 			if err != nil {
 				if test.expectGetError {

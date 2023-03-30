@@ -5,6 +5,7 @@ type EntityDao interface {
 	RemoveEntity(entityID string) error
 
 	GetAttribute(entityId string, attributeId string) (interface{}, error)
+	HasAttribute(entityId string, attributeId string) (bool, error)
 	SetAttribute(entityId string, attributeId string, value interface{}) error
 	RemoveAttribute(entityId string, attributeId string) error
 

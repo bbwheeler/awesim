@@ -32,3 +32,6 @@ func (e *Entity) SetAttribute(attribute string, value interface{}) error {
 func (e *Entity) RemoveAttribute(attribute string) error {
 	return e.dao.RemoveAttribute(e.GetID(), attribute)
 }
+func (e *Entity) HasAttribute(attribute string) (bool, error) {
+	return e.dao.HasAttribute(e.GetID(), attribute)
+}
