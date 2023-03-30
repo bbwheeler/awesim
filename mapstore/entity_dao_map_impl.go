@@ -33,6 +33,12 @@ func (dao *EntityDaoMapImpl) GetAttribute(entityID string, attributeID string) (
 	return val, nil
 }
 
+func (dao *EntityDaoMapImpl) HasAttribute(entityID string, attributeID string) (bool, error) {
+	key := getKey(entityID, attributeID)
+	_, ok := dao.attributeMap[key]
+	return ok, nil
+}
+
 func (dao *EntityDaoMapImpl) SetAttribute(entityID string, attributeID string, value interface{}) error {
 	switch v := value.(type) {
 	case string,int64,float64,bool:
