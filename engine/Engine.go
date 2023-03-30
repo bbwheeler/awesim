@@ -78,7 +78,7 @@ func (e *Engine) GetAllActors() ([]*core.Actor, error) {
 	
 	var actors []*core.Actor
 	for _, entity := range entities {
-		actors = append(actors, core.AsActor(entity))
+		actors = append(actors, core.AsActor(core.GetEntity(entity, e.entityDao)))
 	}
 	return actors, nil
 }
@@ -90,7 +90,7 @@ func (e *Engine) GetActorsThatNeedActions() ([]*core.Actor, error) {
 	}
 	var actorsNeedingActions []*core.Actor
 	for _, actor := range allActors {
-		if action, err := actor.GetNextAction(); err == nil && action != nil {
+		if action, err := actor.GetNextAction(); err == nil && action == nil {
 			actorsNeedingActions = append(actorsNeedingActions, actor)
 		} else if err != nil {
 			return nil, err

@@ -51,7 +51,7 @@ func (t *Timeline) GetCurrentTick() (int64, error) {
 	if len(timelineEntities) < 1 {
 		return 0, fmt.Errorf("no timeline found, no current tick set")
 	}
-	currentTick, err := t.dao.GetAttribute(timelineEntities[0].GetID(),currentTickAttribute)
+	currentTick, err := t.dao.GetAttribute(timelineEntities[0],currentTickAttribute)
 	if err != nil {
 		return 0, err
 	}
@@ -125,7 +125,7 @@ func getActions(dao EntityDao) ([]*Action, error) {
 	}
 	actions := make([]*Action, len(actionEntities))
 	for i, entity := range actionEntities {
-		actions[i] = AsAction(entity)
+		actions[i] = AsAction(GetEntity(entity, dao))
 	}
 	return actions, nil
 }

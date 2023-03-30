@@ -5,14 +5,14 @@ import mapstore "github.com/bbwheeler/awesim/mapstore"
 import "reflect"
 import "fmt"
 import "sort"
+import "github.com/google/uuid"
 
 func TestRemoveEntity(t *testing.T) {
 	const testAttribute string = "testAttribute"
 	const testAttributeValue string = "test"
 	testDao := mapstore.NewEntityDaoMapImpl()
 
-	entity := testDao.NewEntity()
-	entityID := entity.GetID()
+	entityID := uuid.New().String()
 	
 	err := testDao.SetAttribute(entityID, testAttribute, testAttributeValue)
 	if err != nil {
@@ -170,17 +170,12 @@ func TestGetEntitiesWithAttributeType(t *testing.T) {
 				testDao.SetAttribute(fmt.Sprintf("%s%d",entityPrefix,i),"dummyAttribute",int64(i+1))
 			}
 
-			entities, err := testDao.GetEntitiesWithAttributeType(testAttribute)
+			resultIDs, err := testDao.GetEntitiesWithAttributeType(testAttribute)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(entities) != test.numberOfEntitiesWithAttribute {
-				t.Fatalf("Expected entities list with %d values but got %d values", test.numberOfEntitiesWithAttribute, len(entities))
-			}
-
-			var resultIDs []string
-			for _, entity := range entities {
-				resultIDs = append(resultIDs, entity.GetID())
+			if len(resultIDs) != test.numberOfEntitiesWithAttribute {
+				t.Fatalf("Expected entities list with %d values but got %d values", test.numberOfEntitiesWithAttribute, len(resultIDs))
 			}
 
 			if len(resultIDs) != test.numberOfEntitiesWithAttribute {
@@ -291,17 +286,12 @@ func TestGetEntitiesWithAttribute(t *testing.T) {
 				testDao.SetAttribute(fmt.Sprintf("%s%d",entityPrefix,i),"dummyAttribute",int64(i+1))
 			}
 
-			entities, err := testDao.GetEntitiesWithAttribute(testAttribute, testAttributeValue)
+			resultIDs, err := testDao.GetEntitiesWithAttribute(testAttribute, testAttributeValue)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(entities) != test.numberOfEntitiesWithAttributeAndValue {
-				t.Fatalf("Expected entities list with %d values but got %d values", test.numberOfEntitiesWithAttributeAndValue, len(entities))
-			}
-
-			var resultIDs []string
-			for _, entity := range entities {
-				resultIDs = append(resultIDs, entity.GetID())
+			if len(resultIDs) != test.numberOfEntitiesWithAttributeAndValue {
+				t.Fatalf("Expected entities list with %d values but got %d values", test.numberOfEntitiesWithAttributeAndValue, len(resultIDs))
 			}
 
 			if len(resultIDs) != test.numberOfEntitiesWithAttributeAndValue {
@@ -359,8 +349,8 @@ func TestEndToEnd(t *testing.T) {
 	if len(entitiesWithAttributeOne) != 1 {
 		t.Fatalf("expected 1 entity but got %v", len(entitiesWithAttributeOne))
 	}
-	if entitiesWithAttributeOne[0].GetID() != mockEntityOne {
-		t.Fatalf("Exepected %v but got %v", mockEntityOne, entitiesWithAttributeOne[0].GetID())
+	if entitiesWithAttributeOne[0] != mockEntityOne {
+		t.Fatalf("Exepected %v but got %v", mockEntityOne, entitiesWithAttributeOne[0])
 	}
 
 }
