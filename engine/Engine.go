@@ -4,20 +4,38 @@ import "github.com/bbwheeler/awesim/core"
 import "fmt"
 
 type Engine struct {
-	entityDao core.EntityDao
-	actionDecider core.ActionDecider
-	timeline *core.Timeline
-	actionResolver core.ActionResolver	
+	entities entityProvider
+	actionDecider actionDecider
+	timeline timeline
+	actionResolver actionResolver
 }
 
-func New(dao core.EntityDao, actionDecider core.ActionDecider, timeline *core.Timeline, actionResolver core.ActionResolver) *Engine {
-	return &Engine{
-		entityDao: dao,
-		actionDecider: actionDecider,
-		timeline: timeline,
-		actionResolver: actionResolver,
-	}
+type timeline interface {
+	GetCurrentTick() (int64, error)
+	SetCurrentTick(tick int64) error
+	GetPendingAction() (*Action, error)
 }
+
+type entityProvider interface {
+	RemoveEntity(entityID string) error
+
+	GetAttribute(entityId string, attributeId string) (interface{}, error)
+	HasAttribute(entityId string, attributeId string) (bool, error)
+	SetAttribute(entityId string, attributeId string, value interface{}) error
+	RemoveAttribute(entityId string, attributeId string) error
+
+	GetEntitiesWithAttributes(attributes map[string]interface{}) ([]string, error)
+	GetEntitiesWithAttributeType(attribute string) ([]string, error)
+	GetEntitiesWithAttribute(attribute string, value interface{}) ([]string, error)	
+}
+
+type actionDecider interface {
+	DecideActionForActor(actor *Actor) (*Action, error)
+}
+type actionResolver interface {
+	ResolveAction(action *Action) (bool, error)
+}
+
 
 func (e *Engine) RunOneTurn() error {
 	currentTick, err := e.timeline.GetCurrentTick()
