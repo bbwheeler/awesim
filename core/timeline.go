@@ -8,12 +8,12 @@ const actionStartTickAttribute string = "ACTION_START_TICK"
 
 
 type Timeline struct {
-	dao EntityDao
+	store EntityStore
 }
 
-func NewTimeline(dao EntityDao) *Timeline {
+func NewTimeline(entityStore EntityStore) *Timeline {
 	return &Timeline{
-		dao: dao,
+		store: entityStore,
 	}
 }
 
@@ -41,7 +41,7 @@ func (t *Timeline) RemoveAction(action *Action) error {
 
 
 func (t *Timeline) GetCurrentTick() (int64, error) {
-	timelineEntities, err := t.dao.GetEntitiesWithAttributeType(currentTickAttribute)
+	timelineEntities, err := t.store.GetEntitiesWithAttributeType(currentTickAttribute)
 	if err != nil {
 		 return 0, err
 	}
@@ -51,7 +51,7 @@ func (t *Timeline) GetCurrentTick() (int64, error) {
 	if len(timelineEntities) < 1 {
 		return 0, fmt.Errorf("no timeline found, no current tick set")
 	}
-	currentTick, err := t.dao.GetAttribute(timelineEntities[0],currentTickAttribute)
+	currentTick, err := t.store.GetAttribute(timelineEntities[0],currentTickAttribute)
 	if err != nil {
 		return 0, err
 	}
@@ -68,7 +68,7 @@ func (t *Timeline) GetPendingAction() (*Action, error) {
 	if err != nil {
 		return nil, err
 	}
-	actions, err := getActions(t.dao)
+	actions, err := getActions(t.store)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (t *Timeline) GetEndTickOfAction(a *Action) (int64, error) {
 }
 
 func (t *Timeline) SetCurrentTick(tick int64) error {
-	return t.dao.SetAttribute(timelineEntityID, currentTickAttribute, tick)
+	return t.store.SetAttribute(timelineEntityID, currentTickAttribute, tick)
 }
 
 
@@ -118,15 +118,7 @@ func indexOfAction(action *Action, actions []*Action) (int, error) {
 	return 0, fmt.Errorf("action %v not found in action array %v", action, actions)
 }
 
-func getActions(dao EntityDao) ([]*Action, error) {
-	actionEntities, err := dao.GetEntitiesWithAttributeType(actionStartTickAttribute)
-	if err != nil {
-		return nil, err
-	}
-	actions := make([]*Action, len(actionEntities))
-	for i, entity := range actionEntities {
-		actions[i] = AsAction(GetEntity(entity, dao))
-	}
-	return actions, nil
+func getActions(store EntityStore) ([]string, error) {
+	return store.GetEntitiesWithAttributeType(actionStartTickAttribute)
 }
 

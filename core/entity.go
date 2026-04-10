@@ -2,20 +2,31 @@ package core
 
 import "github.com/google/uuid"
 
+type Attribute interface { string|int64|float64|bool}
+
 type Entity struct {
 	id string
-	dao EntityDao
+	store EntityStore
 }
 
-func NewEntity(dao EntityDao) *Entity {
-	return GetEntity(uuid.New().String(), dao)
+type EntityStore interface {
+	GetAttribute(entityId string, attributeId string) (interface{}, error)
+	HasAttribute(entityId string, attributeId string) (bool, error)
+	SetAttribute(entityId string, attributeId string, value interface{}) error
+	RemoveAttribute(entityId string, attributeId string) error
+	GetEntitiesWithAttribute(entityID string, attributeID string) ([]string, error)
+	GetEntitiesWithAttributeType(attribute string) ([]string, error)
+}
+
+func NewEntity(store EntityStore) *Entity {
+	return GetEntity(uuid.New().String(), store)
 	
 }
 
-func GetEntity(id string, dao EntityDao) *Entity {
+func GetEntity(id string, store EntityStore) *Entity {
 	return &Entity{
 		id: id,
-		dao: dao,
+		store: store,
 	}
 }
 
@@ -23,15 +34,15 @@ func (e *Entity) GetID() string {
 	return e.id	
 }
 
-func (e *Entity) GetAttribute(attribute string) (interface{}, error) {
-	return e.dao.GetAttribute(e.GetID(), attribute)
+func (e *Entity) GetAttribute(attribute string) (any, error) {
+	return e.store.GetAttribute(e.GetID(), attribute)
 }
-func (e *Entity) SetAttribute(attribute string, value interface{}) error {
-	return e.dao.SetAttribute(e.GetID(), attribute, value)
+func (e *Entity) SetAttribute(attribute string, value any) error {
+	return e.store.SetAttribute(e.GetID(), attribute, value)
 }
 func (e *Entity) RemoveAttribute(attribute string) error {
-	return e.dao.RemoveAttribute(e.GetID(), attribute)
+	return e.store.RemoveAttribute(e.GetID(), attribute)
 }
 func (e *Entity) HasAttribute(attribute string) (bool, error) {
-	return e.dao.HasAttribute(e.GetID(), attribute)
+	return e.store.HasAttribute(e.GetID(), attribute)
 }
