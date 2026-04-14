@@ -6,6 +6,8 @@ const timelineEntityID string = "ENTITY_TIMELINE"
 const currentTickAttribute string = "CURRENT_TICK"
 const actionStartTickAttribute string = "ACTION_START_TICK"
 
+const ErrNoPendingAction = errString("no pending action found")
+
 type Timeline struct {
 	store EntityStore
 }
@@ -82,7 +84,12 @@ func (t *Timeline) GetPendingActionID() (string, error) {
 			earliestAction = action
 		}
 	}
-	return earliestAction.GetID(), nil
+
+	if earliestAction != nil {
+		return earliestAction.GetID(), nil
+	}
+
+	return "", ErrNoPendingAction
 }
 
 func (t *Timeline) GetStartTickOfAction(a *Action) (int64, error) {

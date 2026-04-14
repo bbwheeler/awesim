@@ -4,13 +4,6 @@ import "fmt"
 
 const IsActorAttribute string = "IsActor"
 
-
-type errString string
-
-func (e errString) Error() string {
-	return string(e)
-}
-
 const ErrActionNotFoundForActor = errString("action not found for actor")
 
 type Actor struct {
@@ -55,4 +48,3 @@ func asActor(e *Entity) *Actor {
 		Entity: *e,
 	}
 }
-

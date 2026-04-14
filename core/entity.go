@@ -2,6 +2,12 @@ package core
 
 import "github.com/google/uuid"
 
+type errString string
+
+func (e errString) Error() string {
+	return string(e)
+}
+
 type Attribute interface {
 	string | int64 | float64 | bool
 }

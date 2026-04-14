@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"errors"
 	"testing"
 
 	core "github.com/bbwheeler/awesim/core"
@@ -50,7 +51,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	nextActionID, err := timeline.GetPendingActionID()
-	if err != nil {
+	if !errors.Is(err, core.ErrNoPendingAction) {
 		t.Fatal(err)
 	}
 	if nextActionID != "" {
