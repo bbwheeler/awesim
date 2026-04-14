@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/bbwheeler/awesim/core"
@@ -100,6 +101,9 @@ func (e *Engine) ExecuteToCurrentTick() error {
 		}
 		firstActionID, err := e.timeline.GetPendingActionID()
 		if err != nil {
+			if errors.Is(err, core.ErrNoPendingAction) {
+				return nil
+			}
 			return err
 		}
 		if firstActionID == "" {
