@@ -1,12 +1,15 @@
 package core_test
 
-import "testing"
-import mapstore "github.com/bbwheeler/awesim/mapstore"
-import core "github.com/bbwheeler/awesim/core"
+import (
+	"testing"
+
+	core "github.com/bbwheeler/awesim/core"
+	mapstore "github.com/bbwheeler/awesim/mapstore"
+)
 
 func TestNewActor(t *testing.T) {
 
-	dao := mapstore.NewEntityDaoMapImpl()
+	dao := mapstore.NewEntityMap()
 
 	testActor := core.NewActor(dao)
 
@@ -19,4 +22,3 @@ func TestNewActor(t *testing.T) {
 		t.Fatalf("Actor %v is not an actor\n", testActor)
 	}
 }
-

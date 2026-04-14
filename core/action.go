@@ -9,9 +9,9 @@ type Action struct {
 	Entity
 }
 
-func NewAction(invoker *Actor, duration int64, store EntityStore) (*Action, error) {
-	entity := NewEntity(invoker.store)
-	entity.SetAttribute(actionInvoker, invoker.GetID())
+func NewAction(invokerID string, duration int64, store EntityStore) (*Action, error) {
+	entity := NewEntity(store)
+	entity.SetAttribute(actionInvoker, invokerID)
 	entity.SetAttribute(actionDuration, duration)
 	return &Action{
 		Entity: *entity,

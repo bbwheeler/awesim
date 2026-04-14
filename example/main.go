@@ -1,12 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
-import "github.com/bbwheeler/awesim/engine"
-import "github.com/bbwheeler/awesim/mapstore"
-import "github.com/bbwheeler/awesim/core/action_deciders"
-import "github.com/bbwheeler/awesim/core/action_resolvers"
-import "github.com/bbwheeler/awesim/core"
+	"github.com/bbwheeler/awesim/core"
+	"github.com/bbwheeler/awesim/core/action_deciders"
+	"github.com/bbwheeler/awesim/core/action_resolvers"
+	"github.com/bbwheeler/awesim/engine"
+	dao "github.com/bbwheeler/awesim/mapstore"
+)
 
 type Game struct {
 	engine *engine.Engine
@@ -23,11 +25,12 @@ func (game *Game) Run() error {
 }
 
 func main() {
-	entityDao := dao.NewEntityDaoMapImpl()
-	timeline := core.NewTimeline(entityDao)
-	actionDecider := action_deciders.NewDoNothingDecider(entityDao, timeline)
+	entityMapStore := dao.NewEntityMapStore()
+	timeline := core.NewTimeline(entityMapStore)
+	actionDecider := action_deciders.NewDoNothingDecider(entityMapStore, timeline)
 	actionResolver := &action_resolvers.NoAction{}
-	engine := engine.New(entityDao, actionDecider, timeline, actionResolver)
+	engine := engine.New(entityMapStore, actionDecider, timeline, actionResolver)
+
 	game := NewGame(engine)
 	timeline.SetCurrentTick(1)
 	fmt.Println("Game Start")

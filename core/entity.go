@@ -2,10 +2,12 @@ package core
 
 import "github.com/google/uuid"
 
-type Attribute interface { string|int64|float64|bool}
+type Attribute interface {
+	string | int64 | float64 | bool
+}
 
 type Entity struct {
-	id string
+	id    string
 	store EntityStore
 }
 
@@ -14,24 +16,24 @@ type EntityStore interface {
 	HasAttribute(entityId string, attributeId string) (bool, error)
 	SetAttribute(entityId string, attributeId string, value interface{}) error
 	RemoveAttribute(entityId string, attributeId string) error
-	GetEntitiesWithAttribute(entityID string, attributeID string) ([]string, error)
+	GetEntitiesWithAttribute(attributeID string, attributeValue any) ([]string, error)
 	GetEntitiesWithAttributeType(attribute string) ([]string, error)
 }
 
 func NewEntity(store EntityStore) *Entity {
 	return GetEntity(uuid.New().String(), store)
-	
+
 }
 
 func GetEntity(id string, store EntityStore) *Entity {
 	return &Entity{
-		id: id,
+		id:    id,
 		store: store,
 	}
 }
 
 func (e *Entity) GetID() string {
-	return e.id	
+	return e.id
 }
 
 func (e *Entity) GetAttribute(attribute string) (any, error) {

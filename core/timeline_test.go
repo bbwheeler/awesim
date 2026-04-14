@@ -1,13 +1,16 @@
 package core_test
 
-import "testing"
-import mapstore "github.com/bbwheeler/awesim/mapstore"
-import core "github.com/bbwheeler/awesim/core"
+import (
+	"testing"
+
+	core "github.com/bbwheeler/awesim/core"
+	mapstore "github.com/bbwheeler/awesim/mapstore"
+)
 
 func TestEndToEnd(t *testing.T) {
 	const startTick int64 = int64(1)
 
-	dao := mapstore.NewEntityDaoMapImpl()
+	dao := mapstore.NewEntityMap()
 	timeline := core.NewTimeline(dao)
 	actorOne := core.NewActor(dao)
 	actionOne, err := core.NewAction(actorOne, 10, dao)
@@ -33,7 +36,7 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("Expected tick to be %v but was %v", startTick, currentTick)
 	}
 
-	err = timeline.AddActions([]*core.Action{actionOne,actionTwo})
+	err = timeline.AddActions([]*core.Action{actionOne, actionTwo})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +57,7 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("Expected nil action but got %v\n", nextAction)
 	}
 
-	err = timeline.SetCurrentTick(startTick+7)
+	err = timeline.SetCurrentTick(startTick + 7)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,13 +73,13 @@ func TestEndToEnd(t *testing.T) {
 	if nextAction.GetID() != actionTwo.GetID() {
 		t.Fatalf("Expected action %v but got action %v", actionTwo.GetID(), nextAction.GetID())
 	}
-	
+
 	err = timeline.RemoveAction(actionTwo)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = timeline.SetCurrentTick(startTick+11)
+	err = timeline.SetCurrentTick(startTick + 11)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,6 +92,4 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("Expected action %v but got action %v", actionOne.GetID(), nextAction.GetID())
 	}
 
-
 }
-

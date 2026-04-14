@@ -1,12 +1,15 @@
 package engine
 
-import "github.com/bbwheeler/awesim/core"
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/bbwheeler/awesim/core"
+)
 
 type Engine struct {
 	entityProvider entityProvider
-	actionDecider actionDecider
-	timeline timeline
+	actionDecider  actionDecider
+	timeline       timeline
 	actionResolver actionResolver
 }
 
@@ -19,6 +22,7 @@ type timeline interface {
 	GetCurrentTick() (int64, error)
 	SetCurrentTick(tick int64) error
 	GetPendingActionID() (string, error)
+	AddActions(actionIDs []string) error
 }
 
 type actorProvider interface {
@@ -46,6 +50,14 @@ type actionResolver interface {
 	ResolveAction(actionID string) (bool, error)
 }
 
+func New(entityProvider entityProvider, actionDecider actionDecider, timeline timeline, actionResolver actionResolver) *Engine {
+	return &Engine{
+		entityProvider: entityProvider,
+		actionDecider:  actionDecider,
+		timeline:       timeline,
+		actionResolver: actionResolver,
+	}
+}
 
 func (e *Engine) RunOneTurn() error {
 	currentTick, err := e.timeline.GetCurrentTick()
@@ -54,14 +66,14 @@ func (e *Engine) RunOneTurn() error {
 	}
 	if currentTick < 0 {
 		return fmt.Errorf("current tick must be positive")
-	} 
+	}
 
 	err = e.ExecuteToCurrentTick()
 	if err != nil {
 		return err
 	}
 
-	err = e.timeline.SetCurrentTick(currentTick+1)
+	err = e.timeline.SetCurrentTick(currentTick + 1)
 	if err != nil {
 		return err
 	}
@@ -86,7 +98,7 @@ func (e *Engine) ExecuteToCurrentTick() error {
 		if err != nil {
 			return err
 		}
-		firstActionID, err := e.timeline.GetPendingAction()
+		firstActionID, err := e.timeline.GetPendingActionID()
 		if err != nil {
 			return err
 		}
@@ -107,8 +119,8 @@ func (e *Engine) getActorsThatNeedActions() ([]string, error) {
 	}
 	var actorsNeedingActions []string
 	for _, actorID := range allActorIDs {
-		actor := GetActor(actorID)
-		if action, err := actor.GetNextAction(); err == nil && action == nil {
+		actor := core.GetActor(actorID, e.entityProvider)
+		if actionID, err := actor.GetNextAction(); err == nil && actionID == "" {
 			actorsNeedingActions = append(actorsNeedingActions, actorID)
 		} else if err != nil {
 			return nil, err
