@@ -9,7 +9,7 @@ import (
 
 func TestNewActor(t *testing.T) {
 
-	dao := mapstore.NewEntityMap()
+	dao := mapstore.NewEntityMapStore()
 
 	testActor := core.NewActor(dao)
 

@@ -29,7 +29,7 @@ func (a *Action) GetInvoker() (string, error) {
 		return "", fmt.Errorf("Unable to retrieve invoker for action %v: %w", a.GetID(), err)
 	}
 	if invokerID == nil {
-		return "", fmt.Errorf("Action %v has no invoker")
+		return "", fmt.Errorf("Action %v has no invoker", a.GetID())
 	}
 	return invokerID.(string), nil
 }

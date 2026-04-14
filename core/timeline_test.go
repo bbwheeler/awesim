@@ -10,15 +10,15 @@ import (
 func TestEndToEnd(t *testing.T) {
 	const startTick int64 = int64(1)
 
-	dao := mapstore.NewEntityMap()
+	dao := mapstore.NewEntityMapStore()
 	timeline := core.NewTimeline(dao)
 	actorOne := core.NewActor(dao)
-	actionOne, err := core.NewAction(actorOne, 10, dao)
+	actionOne, err := core.NewAction(actorOne.GetID(), 10, dao)
 	if err != nil {
 		t.Error(err)
 	}
 	actorTwo := core.NewActor(dao)
-	actionTwo, err := core.NewAction(actorTwo, 5, dao)
+	actionTwo, err := core.NewAction(actorTwo.GetID(), 5, dao)
 	if err != nil {
 		t.Error(err)
 	}
@@ -36,7 +36,7 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("Expected tick to be %v but was %v", startTick, currentTick)
 	}
 
-	err = timeline.AddActions([]*core.Action{actionOne, actionTwo})
+	err = timeline.AddActions([]string{actionOne.GetID(), actionTwo.GetID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,12 +49,12 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("Expected action start tick to be %v but it was %v", startTick, tick)
 	}
 
-	nextAction, err := timeline.GetPendingAction()
+	nextActionID, err := timeline.GetPendingActionID()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if nextAction != nil {
-		t.Fatalf("Expected nil action but got %v\n", nextAction)
+	if nextActionID != "" {
+		t.Fatalf("Expected nil action but got %v\n", nextActionID)
 	}
 
 	err = timeline.SetCurrentTick(startTick + 7)
@@ -62,16 +62,16 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	nextAction, err = timeline.GetPendingAction()
+	nextActionID, err = timeline.GetPendingActionID()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if nextAction == nil {
+	if nextActionID == "" {
 		t.Fatalf("Expected next action to be %v but was nil", actionTwo.GetID())
 	}
 
-	if nextAction.GetID() != actionTwo.GetID() {
-		t.Fatalf("Expected action %v but got action %v", actionTwo.GetID(), nextAction.GetID())
+	if nextActionID != actionTwo.GetID() {
+		t.Fatalf("Expected action %v but got action %v", actionTwo.GetID(), nextActionID)
 	}
 
 	err = timeline.RemoveAction(actionTwo)
@@ -84,12 +84,12 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	nextAction, err = timeline.GetPendingAction()
+	nextActionID, err = timeline.GetPendingActionID()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if nextAction.GetID() != actionOne.GetID() {
-		t.Fatalf("Expected action %v but got action %v", actionOne.GetID(), nextAction.GetID())
+	if nextActionID != actionOne.GetID() {
+		t.Fatalf("Expected action %v but got action %v", actionOne.GetID(), nextActionID)
 	}
 
 }
