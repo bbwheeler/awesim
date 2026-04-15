@@ -42,7 +42,7 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tick, err := timeline.GetStartTickOfAction(actionOne)
+	tick, err := timeline.GetStartTickOfAction(actionOne.GetID())
 	if err != nil {
 		t.Fatal(err)
 	}
