@@ -11,15 +11,15 @@ import (
 func TestEndToEnd(t *testing.T) {
 	const startTick int64 = int64(1)
 
-	dao := mapstore.NewEntityMapStore()
-	timeline := core.NewTimeline(dao)
-	actorOne := core.NewActor(dao)
-	actionOne, err := core.NewAction(actorOne.GetID(), 10, dao)
+	store := mapstore.NewEntityMapStore()
+	timeline := core.NewTimeline(store)
+	actorOne := core.NewActor(store)
+	actionOne, err := core.NewAction(actorOne.GetID(), 10, store)
 	if err != nil {
 		t.Error(err)
 	}
-	actorTwo := core.NewActor(dao)
-	actionTwo, err := core.NewAction(actorTwo.GetID(), 5, dao)
+	actorTwo := core.NewActor(store)
+	actionTwo, err := core.NewAction(actorTwo.GetID(), 5, store)
 	if err != nil {
 		t.Error(err)
 	}

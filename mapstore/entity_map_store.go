@@ -1,4 +1,4 @@
-package dao
+package mapstore
 
 import (
 	"fmt"

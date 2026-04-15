@@ -1,4 +1,4 @@
-package dao_test
+package mapstore_test
 
 import (
 	"fmt"

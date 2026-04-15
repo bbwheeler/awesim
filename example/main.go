@@ -7,7 +7,7 @@ import (
 	"github.com/bbwheeler/awesim/core/action_deciders"
 	"github.com/bbwheeler/awesim/core/action_resolvers"
 	"github.com/bbwheeler/awesim/engine"
-	dao "github.com/bbwheeler/awesim/mapstore"
+	"github.com/bbwheeler/awesim/mapstore"
 )
 
 type Game struct {
@@ -25,7 +25,7 @@ func (game *Game) Run() error {
 }
 
 func main() {
-	entityMapStore := dao.NewEntityMapStore()
+	entityMapStore := mapstore.NewEntityMapStore()
 	timeline := core.NewTimeline(entityMapStore)
 	actionDecider := action_deciders.NewDoNothingDecider(entityMapStore, timeline)
 	actionResolver := &action_resolvers.NoAction{}

@@ -62,9 +62,27 @@ func (t *Timeline) GetCurrentTick() (int64, error) {
 	return currentTick.(int64), err
 }
 
+func (t *Timeline) GetPendingActionIDWithMaxTick(maxTick int64) (string, error) {
+	actionID, err := t.GetPendingActionID()
+	if err != nil {
+		return "", err
+	}
+
+	endTick, err := t.GetEndTickOfAction(actionID)
+	if err != nil {
+		return "", err
+	}
+
+	if endTick > maxTick {
+		return "", ErrNoPendingAction
+	}
+
+	return actionID, nil
+}
+
 func (t *Timeline) GetPendingActionID() (string, error) {
 	var earliestEndTick int64
-	var earliestAction *Action
+	var earliestActionID string
 	tick, err := t.GetCurrentTick()
 	if err != nil {
 		return "", err
@@ -74,37 +92,38 @@ func (t *Timeline) GetPendingActionID() (string, error) {
 		return "", err
 	}
 	for _, actionID := range actionIDs {
-		action := GetAction(actionID, t.store)
-		endTick, err := t.GetEndTickOfAction(action)
+		endTick, err := t.GetEndTickOfAction(actionID)
 		if err != nil {
 			return "", err
 		}
 		if endTick <= tick && (earliestEndTick <= 0 || endTick < earliestEndTick) {
 			earliestEndTick = endTick
-			earliestAction = action
+			earliestActionID = actionID
 		}
 	}
 
-	if earliestAction != nil {
-		return earliestAction.GetID(), nil
+	if earliestActionID != "" {
+		return earliestActionID, nil
 	}
 
 	return "", ErrNoPendingAction
 }
 
-func (t *Timeline) GetStartTickOfAction(a *Action) (int64, error) {
+func (t *Timeline) GetStartTickOfAction(actionID string) (int64, error) {
+	a := GetAction(actionID, t.store)
 	startTick, err := a.GetAttribute(actionStartTickAttribute)
 	if startTick == nil {
 		return 0, fmt.Errorf("Action %v has no start tick", a)
 	}
 	return startTick.(int64), err
 }
-func (t *Timeline) GetEndTickOfAction(a *Action) (int64, error) {
-	startTick, err := t.GetStartTickOfAction(a)
+func (t *Timeline) GetEndTickOfAction(actionID string) (int64, error) {
+	startTick, err := t.GetStartTickOfAction(actionID)
 	if err != nil {
 		return 0, err
 	}
-	duration, err := a.GetDuration()
+	action := GetAction(actionID, t.store)
+	duration, err := action.GetDuration()
 	if err != nil {
 		return 0, err
 	}
