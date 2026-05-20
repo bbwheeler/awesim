@@ -1,10 +1,8 @@
 package action_resolvers
 
-import "github.com/bbwheeler/awesim/core"
-
 type NoAction struct {
 }
 
-func (ar *NoAction)ResolveAction(action *core.Action) (bool, error) {
+func (ar *NoAction) ResolveAction(actionID string) (bool, error) {
 	return false, nil
 }

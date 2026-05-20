@@ -9,9 +9,9 @@ type Action struct {
 	Entity
 }
 
-func NewAction(invoker *Actor, duration int64, store EntityStore) (*Action, error) {
-	entity := NewEntity(invoker.store)
-	entity.SetAttribute(actionInvoker, invoker.GetID())
+func NewAction(invokerID string, duration int64, store EntityStore) (*Action, error) {
+	entity := NewEntity(store)
+	entity.SetAttribute(actionInvoker, invokerID)
 	entity.SetAttribute(actionDuration, duration)
 	return &Action{
 		Entity: *entity,
@@ -29,7 +29,7 @@ func (a *Action) GetInvoker() (string, error) {
 		return "", fmt.Errorf("Unable to retrieve invoker for action %v: %w", a.GetID(), err)
 	}
 	if invokerID == nil {
-		return "", fmt.Errorf("Action %v has no invoker")
+		return "", fmt.Errorf("Action %v has no invoker", a.GetID())
 	}
 	return invokerID.(string), nil
 }

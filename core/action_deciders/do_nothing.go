@@ -5,17 +5,21 @@ import "github.com/bbwheeler/awesim/core"
 const ActionTypeDoNothing string = "DoNothing"
 
 type DoNothing struct {
-	dao core.EntityDao
-	timeline *core.Timeline
+	entityStore core.EntityStore
+	timeline    *core.Timeline
 }
 
-func NewDoNothingDecider(dao core.EntityDao, timeline *core.Timeline) *DoNothing {
+func NewDoNothingDecider(entityStore core.EntityStore, timeline *core.Timeline) *DoNothing {
 	return &DoNothing{
-		dao: dao,
-		timeline: timeline,
+		entityStore: entityStore,
+		timeline:    timeline,
 	}
 }
 
-func (dn *DoNothing)DecideActionForActor(actor *core.Actor) (*core.Action, error) {
-	return core.NewAction(actor, 1, dn.dao)
+func (dn *DoNothing) DecideActionForActor(actorID string) (string, error) {
+	newAction, err := core.NewAction(actorID, 1, dn.entityStore)
+	if err != nil {
+		return "", err
+	}
+	return newAction.GetID(), nil
 }

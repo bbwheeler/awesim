@@ -1,12 +1,16 @@
 package engine
 
-import "github.com/bbwheeler/awesim/core"
-import "fmt"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/bbwheeler/awesim/core"
+)
 
 type Engine struct {
 	entityProvider entityProvider
-	actionDecider actionDecider
-	timeline timeline
+	actionDecider  actionDecider
+	timeline       timeline
 	actionResolver actionResolver
 }
 
@@ -19,6 +23,8 @@ type timeline interface {
 	GetCurrentTick() (int64, error)
 	SetCurrentTick(tick int64) error
 	GetPendingActionID() (string, error)
+	GetPendingActionIDWithMaxTick(maxTick int64) (string, error)
+	AddActions(actionIDs []string) error
 }
 
 type actorProvider interface {
@@ -46,22 +52,30 @@ type actionResolver interface {
 	ResolveAction(actionID string) (bool, error)
 }
 
+func New(entityProvider entityProvider, actionDecider actionDecider, timeline timeline, actionResolver actionResolver) *Engine {
+	return &Engine{
+		entityProvider: entityProvider,
+		actionDecider:  actionDecider,
+		timeline:       timeline,
+		actionResolver: actionResolver,
+	}
+}
 
-func (e *Engine) RunOneTurn() error {
+func (e *Engine) RunCurrentTurn() error {
 	currentTick, err := e.timeline.GetCurrentTick()
 	if err != nil {
 		return err
 	}
 	if currentTick < 0 {
 		return fmt.Errorf("current tick must be positive")
-	} 
+	}
 
-	err = e.ExecuteToCurrentTick()
+	err = e.ExecuteToTick(currentTick)
 	if err != nil {
 		return err
 	}
 
-	err = e.timeline.SetCurrentTick(currentTick+1)
+	err = e.timeline.SetCurrentTick(currentTick + 1)
 	if err != nil {
 		return err
 	}
@@ -72,7 +86,7 @@ func (e *Engine) RunOneTurn() error {
 func (e *Engine) Run() error {
 	var ended bool
 	for !ended {
-		err := e.RunOneTurn()
+		err := e.RunCurrentTurn()
 		if err != nil {
 			return err
 		}
@@ -80,19 +94,31 @@ func (e *Engine) Run() error {
 	return nil
 }
 
-func (e *Engine) ExecuteToCurrentTick() error {
+func (e *Engine) ExecuteToTick(targetTick int64) error {
+	currentTick, err := e.timeline.GetCurrentTick()
+	if err != nil {
+		return err
+	}
+	if currentTick < 0 {
+		return fmt.Errorf("current tick must be positive")
+	}
+	if currentTick > targetTick {
+		return nil
+	}
+
 	for {
-		err := e.decideActions()
+		err = e.decideActions()
 		if err != nil {
 			return err
 		}
-		firstActionID, err := e.timeline.GetPendingAction()
+		firstActionID, err := e.timeline.GetPendingActionIDWithMaxTick(targetTick)
 		if err != nil {
+			if errors.Is(err, core.ErrNoPendingAction) {
+				return nil
+			}
 			return err
 		}
-		if firstActionID == "" {
-			return nil
-		}
+
 		err = e.resolveAction(firstActionID)
 		if err != nil {
 			return err
@@ -107,8 +133,8 @@ func (e *Engine) getActorsThatNeedActions() ([]string, error) {
 	}
 	var actorsNeedingActions []string
 	for _, actorID := range allActorIDs {
-		actor := GetActor(actorID)
-		if action, err := actor.GetNextAction(); err == nil && action == nil {
+		actor := core.GetActor(actorID, e.entityProvider)
+		if actionID, err := actor.GetNextAction(); err == nil && actionID == "" {
 			actorsNeedingActions = append(actorsNeedingActions, actorID)
 		} else if err != nil {
 			return nil, err

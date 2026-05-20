@@ -1,21 +1,23 @@
 package action_resolvers
 
-import "github.com/bbwheeler/awesim/core"
+type ActionResolver interface {
+	ResolveAction(string) (bool, error)
+}
 
 type Ordered struct {
-	resolvers []core.ActionResolver
+	resolvers []ActionResolver
 }
 
-func NewOrdered(resolvers []core.ActionResolver) *Ordered {
+func NewOrdered(resolvers []ActionResolver) *Ordered {
 	return &Ordered{
 		resolvers: resolvers,
-	} 
+	}
 }
 
-func (r *Ordered)ResolveAction(action *core.Action) (bool, error) {
+func (r *Ordered) ResolveAction(actionID string) (bool, error) {
 
 	for _, resolver := range r.resolvers {
-		resolved, err := resolver.ResolveAction(action)
+		resolved, err := resolver.ResolveAction(actionID)
 		if err != nil {
 			return false, err
 		}
@@ -23,5 +25,5 @@ func (r *Ordered)ResolveAction(action *core.Action) (bool, error) {
 			return true, nil
 		}
 	}
-	return false, nil 
+	return false, nil
 }
