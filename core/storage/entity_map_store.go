@@ -1,62 +1,64 @@
 package storage
 
-import "strings"
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
-type MultiStore struct {
-	stores []EntityDao
+type EntityMapStore struct {
+	attributeMap map[string]any
 }
 
-func NewMut() *EntityDaoMapImpl {
-	attributes := make(map[string]interface{})
-	return &EntityDaoMapImpl{
+func NewEntityMapStore() *EntityMapStore {
+	attributes := make(map[string]any)
+	return &EntityMapStore{
 		attributeMap: attributes,
 	}
 }
-	
-func (dao *EntityDaoMapImpl) RemoveEntity(id string) error {
-	for key, _ := range dao.attributeMap {
+
+func (entityMapStore *EntityMapStore) RemoveEntity(id string) error {
+	for key := range entityMapStore.attributeMap {
 		if getEntityIDFromKey(key) == id {
-			delete(dao.attributeMap, key)
+			delete(entityMapStore.attributeMap, key)
 		}
 	}
 	return nil
 }
 
-func (dao *EntityDaoMapImpl) GetAttribute(entityID string, attributeID string) (interface{}, error) {
+func (entityMapStore *EntityMapStore) GetAttribute(entityID string, attributeID string) (any, error) {
 	key := getKey(entityID, attributeID)
-	val, ok := dao.attributeMap[key]
+	val, ok := entityMapStore.attributeMap[key]
 	if !ok {
 		return nil, fmt.Errorf("Entity %s does not have attribute %s", entityID, attributeID)
 	}
 	return val, nil
 }
 
-func (dao *EntityDaoMapImpl) HasAttribute(entityID string, attributeID string) (bool, error) {
+func (entityMapStore *EntityMapStore) HasAttribute(entityID string, attributeID string) (bool, error) {
 	key := getKey(entityID, attributeID)
-	_, ok := dao.attributeMap[key]
+	_, ok := entityMapStore.attributeMap[key]
 	return ok, nil
 }
 
-func (dao *EntityDaoMapImpl) SetAttribute(entityID string, attributeID string, value interface{}) error {
+func (entityMapStore *EntityMapStore) SetAttribute(entityID string, attributeID string, value any) error {
 	switch v := value.(type) {
-	case string,int64,float64,bool:
+	case string, int64, float64, bool:
 		// It is a correct type
 	default:
 		return fmt.Errorf("Type %v not supported", v)
 	}
-	dao.attributeMap[getKey(entityID,attributeID)] = value
+	entityMapStore.attributeMap[getKey(entityID, attributeID)] = value
 	return nil
 }
 
-func (dao *EntityDaoMapImpl) RemoveAttribute(entityID string, attributeID string) error {
-	delete(dao.attributeMap, getKey(entityID,attributeID))
+func (entityMapStore *EntityMapStore) RemoveAttribute(entityID string, attributeID string) error {
+	delete(entityMapStore.attributeMap, getKey(entityID, attributeID))
 	return nil
 }
 
-func (dao *EntityDaoMapImpl) GetEntitiesWithAttributeType(attribute string) ([]string, error) {
+func (entityMapStore *EntityMapStore) GetEntitiesWithAttributeType(attribute string) ([]string, error) {
 	var entities []string
-	for key, _ := range dao.attributeMap {
+	for key := range entityMapStore.attributeMap {
 		if getAttributeFromKey(key) == attribute {
 			entities = append(entities, getEntityIDFromKey(key))
 		}
@@ -64,15 +66,15 @@ func (dao *EntityDaoMapImpl) GetEntitiesWithAttributeType(attribute string) ([]s
 	return entities, nil
 }
 
-func (dao *EntityDaoMapImpl) GetEntitiesWithAttribute(attribute string, value interface{}) ([]string, error) {
-	attributeMap := make(map[string]interface{})
+func (entityMapStore *EntityMapStore) GetEntitiesWithAttribute(attribute string, value any) ([]string, error) {
+	attributeMap := make(map[string]any)
 	attributeMap[attribute] = value
-	return dao.GetEntitiesWithAttributes(attributeMap)
+	return entityMapStore.GetEntitiesWithAttributes(attributeMap)
 }
 
-func (dao *EntityDaoMapImpl) GetEntitiesWithAttributes(attributes map[string]interface{}) ([]string, error) {
+func (entityMapStore *EntityMapStore) GetEntitiesWithAttributes(attributes map[string]any) ([]string, error) {
 	countMap := make(map[string]int)
-	for daoKey, daoValue := range dao.attributeMap {
+	for daoKey, daoValue := range entityMapStore.attributeMap {
 		att := getAttributeFromKey(daoKey)
 		ent := getEntityIDFromKey(daoKey)
 		val, exists := attributes[att]
@@ -114,19 +116,18 @@ func contains(s []string, val string) bool {
 	return indexOf(s, val) >= 0
 }
 func indexOf(s []string, val string) int {
-    for index, a := range s {
-        if a == val {
-            return index
-        }
-    }
-    return -1
+	for index, a := range s {
+		if a == val {
+			return index
+		}
+	}
+	return -1
 }
 
 func removeAtIndex(s []string, index int) []string {
-    s[index] = s[len(s)-1]
-    return s[:len(s)-1]
+	s[index] = s[len(s)-1]
+	return s[:len(s)-1]
 }
-
 
 func getEntityIDFromKey(key string) string {
 	subs := strings.SplitN(key, "#", 2)
@@ -138,5 +139,5 @@ func getAttributeFromKey(key string) string {
 	return subs[1]
 }
 func getKey(entityID string, attributeID string) string {
-	return fmt.Sprintf("%s#%s",entityID,attributeID)
+	return fmt.Sprintf("%s#%s", entityID, attributeID)
 }

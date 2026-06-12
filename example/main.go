@@ -6,8 +6,8 @@ import (
 	"github.com/bbwheeler/awesim/core"
 	"github.com/bbwheeler/awesim/core/action_deciders"
 	"github.com/bbwheeler/awesim/core/action_resolvers"
+	"github.com/bbwheeler/awesim/core/storage"
 	"github.com/bbwheeler/awesim/engine"
-	"github.com/bbwheeler/awesim/mapstore"
 )
 
 type Game struct {
@@ -25,7 +25,7 @@ func (game *Game) Run() error {
 }
 
 func main() {
-	entityMapStore := mapstore.NewEntityMapStore()
+	entityMapStore := storage.NewEntityMapStore()
 	timeline := core.NewTimeline(entityMapStore)
 	actionDecider := action_deciders.NewDoNothingDecider(entityMapStore, timeline)
 	actionResolver := &action_resolvers.NoAction{}

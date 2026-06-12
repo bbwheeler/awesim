@@ -1,4 +1,4 @@
-package mapstore_test
+package storage_test
 
 import (
 	"fmt"
@@ -6,14 +6,14 @@ import (
 	"sort"
 	"testing"
 
-	mapstore "github.com/bbwheeler/awesim/mapstore"
+	"github.com/bbwheeler/awesim/core/storage"
 	"github.com/google/uuid"
 )
 
 func TestRemoveEntity(t *testing.T) {
 	const testAttribute string = "testAttribute"
 	const testAttributeValue string = "test"
-	testDao := mapstore.NewEntityMapStore()
+	testDao := storage.NewEntityMapStore()
 
 	entityID := uuid.New().String()
 
@@ -86,7 +86,7 @@ func TestSetHasAndGetAttribute(t *testing.T) {
 			const mockEntityOne string = "entityOne"
 			const mockAttributeOne string = "mock_attribute_one"
 
-			testDao := mapstore.NewEntityMapStore()
+			testDao := storage.NewEntityMapStore()
 			var err error
 			if !test.doNotSetAttributeValue {
 				err = testDao.SetAttribute(mockEntityOne, mockAttributeOne, test.attributeValue)
@@ -166,7 +166,7 @@ func TestGetEntitiesWithAttributeType(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			const entityPrefix string = "test"
 
-			testDao := mapstore.NewEntityMapStore()
+			testDao := storage.NewEntityMapStore()
 			var entitiesWithAttribute []string
 
 			testAttribute := "mock attribute"
@@ -277,7 +277,7 @@ func TestGetEntitiesWithAttribute(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			const entityPrefix string = "test"
 
-			testDao := mapstore.NewEntityMapStore()
+			testDao := storage.NewEntityMapStore()
 			var entitiesWithAttribute []string
 
 			testAttribute := "mock attribute"
@@ -328,7 +328,7 @@ func TestEndToEnd(t *testing.T) {
 	const stringValue string = "a value"
 	const intValue int64 = int64(3)
 
-	testDao := mapstore.NewEntityMapStore()
+	testDao := storage.NewEntityMapStore()
 	testDao.SetAttribute(mockEntityOne, mockAttributeOne, stringValue)
 	testDao.SetAttribute(mockEntityTwo, mockAttributeTwo, intValue)
 	stringResult, err := testDao.GetAttribute(mockEntityOne, mockAttributeOne)

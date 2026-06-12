@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	core "github.com/bbwheeler/awesim/core"
-	mapstore "github.com/bbwheeler/awesim/mapstore"
+	"github.com/bbwheeler/awesim/core/storage"
 )
 
 func TestEndToEnd(t *testing.T) {
 	const startTick int64 = int64(1)
 
-	store := mapstore.NewEntityMapStore()
+	store := storage.NewEntityMapStore()
 	timeline := core.NewTimeline(store)
 	actorOne := core.NewActor(store)
 	actionOne, err := core.NewAction(actorOne.GetID(), 10, store)

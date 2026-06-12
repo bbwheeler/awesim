@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	core "github.com/bbwheeler/awesim/core"
-	mapstore "github.com/bbwheeler/awesim/mapstore"
+	"github.com/bbwheeler/awesim/core/storage"
 )
 
 func TestNewActor(t *testing.T) {
 
-	dao := mapstore.NewEntityMapStore()
+	dao := storage.NewEntityMapStore()
 
 	testActor := core.NewActor(dao)
 
