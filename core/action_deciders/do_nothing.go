@@ -2,8 +2,6 @@ package action_deciders
 
 import "github.com/bbwheeler/awesim/core"
 
-const ActionTypeDoNothing string = "DoNothing"
-
 type DoNothing struct {
 	entityStore core.EntityStore
 	timeline    *core.Timeline

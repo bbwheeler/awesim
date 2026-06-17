@@ -4,6 +4,7 @@ import "fmt"
 
 const actionInvoker string = "ACTION_INVOKER"
 const actionDuration string = "ACTION_DURATION"
+const actionRequirements string = "ACTION_REQUIREMENTS"
 
 type Action struct {
 	Entity
