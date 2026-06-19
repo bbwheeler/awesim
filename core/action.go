@@ -3,17 +3,16 @@ package core
 import "fmt"
 
 const actionInvoker string = "ACTION_INVOKER"
-const actionDuration string = "ACTION_DURATION"
-const actionRequirements string = "ACTION_REQUIREMENTS"
+const ActionDuration string = "ACTION_DURATION"
 
 type Action struct {
 	Entity
 }
 
-func NewAction(invokerID string, duration int64, store EntityStore) (*Action, error) {
+func NewAction(invokerID string, duration Tick, store EntityStore) (*Action, error) {
 	entity := NewEntity(store)
 	entity.SetAttribute(actionInvoker, invokerID)
-	entity.SetAttribute(actionDuration, duration)
+	entity.SetAttribute(ActionDuration, duration)
 	return &Action{
 		Entity: *entity,
 	}, nil
@@ -35,9 +34,14 @@ func (a *Action) GetInvoker() (string, error) {
 	return invokerID.(string), nil
 }
 
-func (a *Action) GetDuration() (int64, error) {
-	duration, err := a.GetAttribute(actionDuration)
-	return duration.(int64), err
+func (a *Action) GetDuration() (Tick, error) {
+	duration, err := a.GetAttribute(ActionDuration)
+	if err != nil {
+		return 0, err
+	}
+	durationTick, err := ToTick(duration)
+
+	return durationTick, err
 }
 
 func (a *Action) FinishAction() error {

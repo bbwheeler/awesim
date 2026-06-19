@@ -9,7 +9,7 @@ import (
 )
 
 func TestEndToEnd(t *testing.T) {
-	const startTick int64 = int64(1)
+	const startTick core.Tick = core.Tick(1)
 
 	store := storage.NewEntityMapStore()
 	timeline := core.NewTimeline(store)

@@ -20,10 +20,10 @@ type Actor interface {
 }
 
 type timeline interface {
-	GetCurrentTick() (int64, error)
-	SetCurrentTick(tick int64) error
+	GetCurrentTick() (core.Tick, error)
+	SetCurrentTick(tick core.Tick) error
 	GetPendingActionID() (string, error)
-	GetPendingActionIDWithMaxTick(maxTick int64) (string, error)
+	GetPendingActionIDWithMaxTick(maxTick core.Tick) (string, error)
 	AddActions(actionIDs []string) error
 }
 
@@ -94,7 +94,7 @@ func (e *Engine) Run() error {
 	return nil
 }
 
-func (e *Engine) ExecuteToTick(targetTick int64) error {
+func (e *Engine) ExecuteToTick(targetTick core.Tick) error {
 	currentTick, err := e.timeline.GetCurrentTick()
 	if err != nil {
 		return err
