@@ -55,6 +55,10 @@ func (a *Actor) GetNextAction() (string, error) {
 	return actionIDs[0], nil
 }
 
+func (a *Actor) ProvideNextAction() (string, error) {
+	panic("unimplemented")
+}
+
 func asActor(e *Entity) *Actor {
 	return &Actor{
 		Entity: *e,
