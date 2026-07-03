@@ -8,8 +8,14 @@ const IsActorAttribute string = "IsActor"
 
 const ErrActionNotFoundForActor = errString("action not found for actor")
 
-type Actor struct {
+type ActorEntity struct {
 	Entity
+}
+
+type Actor interface {
+	GetNextActionID() (string, error)
+	ProvideNextAction() (string, error)
+	GetID() string
 }
 
 type ActorProvider struct {
@@ -26,7 +32,7 @@ func NewActorProvider(entityProvider EntityProvider) *ActorProvider {
 	}
 }
 
-func NewActor(store EntityStore) *Actor {
+func NewActor(store EntityStore) Actor {
 	entity := NewEntity(store)
 	entity.SetAttribute(IsActorAttribute, true)
 	return asActor(entity)
@@ -36,12 +42,12 @@ func (p *ActorProvider) GetAllActorIDs() ([]string, error) {
 	return p.entityProvider.GetEntitiesWithAttribute(IsActorAttribute, true)
 }
 
-func (p *ActorProvider) GetActor(actorID string) *Actor {
+func (p *ActorProvider) GetActor(actorID string) Actor {
 	entity := p.entityProvider.GetEntity(actorID)
 	return asActor(entity)
 }
 
-func (a *Actor) GetNextAction() (string, error) {
+func (a *ActorEntity) GetNextActionID() (string, error) {
 	actionIDs, err := a.store.GetEntitiesWithAttribute(actionInvoker, a.GetID())
 	if err != nil {
 		return "", err
@@ -55,12 +61,12 @@ func (a *Actor) GetNextAction() (string, error) {
 	return actionIDs[0], nil
 }
 
-func (a *Actor) ProvideNextAction() (string, error) {
+func (a *ActorEntity) ProvideNextAction() (string, error) {
 	panic("unimplemented")
 }
 
-func asActor(e *Entity) *Actor {
-	return &Actor{
+func asActor(e *Entity) *ActorEntity {
+	return &ActorEntity{
 		Entity: *e,
 	}
 }
