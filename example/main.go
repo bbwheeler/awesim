@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/bbwheeler/awesim/core"
-	"github.com/bbwheeler/awesim/core/action_deciders"
-	"github.com/bbwheeler/awesim/core/action_resolvers"
 	"github.com/bbwheeler/awesim/core/storage"
 	"github.com/bbwheeler/awesim/engine"
 )
@@ -20,16 +18,14 @@ func NewGame(engine *engine.Engine) *Game {
 	}
 }
 
-func (game *Game) Run() error {
-	return game.engine.Run()
-}
-
 func main() {
 	entityMapStore := storage.NewEntityMapStore()
 	timeline := core.NewTimeline(entityMapStore)
-	actionDecider := action_deciders.NewDoNothingDecider(entityMapStore, timeline)
-	actionResolver := &action_resolvers.NoAction{}
-	engine := engine.New(entityMapStore, actionDecider, timeline, actionResolver)
+	actorProvider := core.NewActorProvider(entityMapStore)
+
+	// actionDecider := action_deciders.NewDoNothingDecider(entityMapStore, timeline)
+	// actionResolver := &action_resolvers.NoAction{}
+	engine := engine.New(entityMapStore, actorProvider, actionProvider, timeline)
 
 	game := NewGame(engine)
 	timeline.SetCurrentTick(1)

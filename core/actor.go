@@ -1,6 +1,8 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const IsActorAttribute string = "IsActor"
 
@@ -10,8 +12,18 @@ type Actor struct {
 	Entity
 }
 
+type ActorProvider struct {
+	entityProvider EntityProvider
+}
 type EntityProvider interface {
 	GetEntitiesWithAttribute(entityID string, attribute any) ([]string, error)
+	GetEntity(entityID string) *Entity
+}
+
+func NewActorProvider(entityProvider EntityProvider) *ActorProvider {
+	return &ActorProvider{
+		entityProvider: entityProvider,
+	}
 }
 
 func NewActor(store EntityStore) *Actor {
@@ -20,12 +32,12 @@ func NewActor(store EntityStore) *Actor {
 	return asActor(entity)
 }
 
-func GetAllActors(entityProvider EntityProvider) ([]string, error) {
-	return entityProvider.GetEntitiesWithAttribute(IsActorAttribute, true)
+func (p *ActorProvider) GetAllActorIDs() ([]string, error) {
+	return p.entityProvider.GetEntitiesWithAttribute(IsActorAttribute, true)
 }
 
-func GetActor(actorID string, entityStore EntityStore) *Actor {
-	entity := GetEntity(actorID, entityStore)
+func (p *ActorProvider) GetActor(actorID string) *Actor {
+	entity := p.entityProvider.GetEntity(actorID)
 	return asActor(entity)
 }
 

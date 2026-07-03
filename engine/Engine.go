@@ -33,7 +33,7 @@ type timeline interface {
 }
 
 type actorProvider interface {
-	GetActor(actorID string) (Actor, error)
+	GetActor(actorID string) Actor
 	GetAllActorIDs() ([]string, error)
 }
 
@@ -125,7 +125,7 @@ func (e *Engine) getActorsThatNeedActions() ([]string, error) {
 	}
 	var actorsNeedingActions []string
 	for _, actorID := range allActorIDs {
-		actor, err := e.actorProvider.GetActor(actorID)
+		actor := e.actorProvider.GetActor(actorID)
 		if err != nil {
 			return nil, err
 		}
@@ -147,10 +147,8 @@ func (e *Engine) updateActions() error {
 
 	var newActions []string
 	for _, actorID := range actorsNeedingActions {
-		actor, err := e.actorProvider.GetActor(actorID)
-		if err != nil {
-			return err
-		}
+		actor := e.actorProvider.GetActor(actorID)
+
 		actionID, err := actor.ProvideNextAction()
 		if err != nil {
 			return err
