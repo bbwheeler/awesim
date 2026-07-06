@@ -8,11 +8,11 @@ import (
 )
 
 type Engine struct {
-	entityStore   entityStore
-	actorStore    actorStore
-	actionStore   actionStore
-	timeline      timeline
-	actionCreator actionProvider
+	entityStore    entityStore
+	actorStore     actorStore
+	timeline       timeline
+	actionProvider actionProvider
+	actionResolver actionResolver
 }
 
 type timeline interface {
@@ -39,20 +39,22 @@ type actorStore interface {
 	GetAllActorIDs() ([]string, error)
 	GetNextActionID(actorID string) (string, error)
 }
-type actionStore interface {
-}
 
 type actionProvider interface {
 	ProvideNextActionFor(actorID string) (string, error)
 }
 
-func New(entityStore entityStore, actorStore actorStore, actionStore actionStore, timeline timeline, actionCreator actionProvider) *Engine {
+type actionResolver interface {
+	ResolveAction(actionID string) error
+}
+
+func New(entityStore entityStore, actorStore actorStore, timeline timeline, actionProvider actionProvider, actionResolver actionResolver) *Engine {
 	return &Engine{
-		entityStore:   entityStore,
-		actorStore:    actorStore,
-		actionStore:   actionStore,
-		timeline:      timeline,
-		actionCreator: actionCreator,
+		entityStore:    entityStore,
+		actorStore:     actorStore,
+		timeline:       timeline,
+		actionProvider: actionProvider,
+		actionResolver: actionResolver,
 	}
 }
 
@@ -136,7 +138,7 @@ func (e *Engine) updateActions() error {
 
 	var newActions []string
 	for _, actorID := range actorsNeedingActions {
-		actionID, err := e.actionCreator.ProvideNextActionFor(actorID)
+		actionID, err := e.actionProvider.ProvideNextActionFor(actorID)
 		if err != nil {
 			return err
 		}
@@ -153,15 +155,10 @@ func (e *Engine) updateActions() error {
 }
 
 func (e *Engine) resolveAction(actionID string) error {
-	// action := e.actionProvider.GetAction(actionID)
+	err := e.actionResolver.ResolveAction(actionID)
+	if err != nil {
+		return err
+	}
 
-	// err := action.Resolve()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// return e.entityProvider.RemoveEntity(actionID)
-
-	// TODO: This
-	return nil
+	return e.entityStore.RemoveEntity(actionID)
 }

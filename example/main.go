@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/bbwheeler/awesim/core"
-	actionproviders "github.com/bbwheeler/awesim/core/action_providers"
 	"github.com/bbwheeler/awesim/core/storage"
 	"github.com/bbwheeler/awesim/engine"
 )
@@ -24,9 +23,9 @@ func main() {
 	actionStore := core.NewActionStore(entityMapStore)
 	actorStore := core.NewActorStore(entityMapStore)
 	timeline := core.NewTimeline(actionStore)
-	randomActionProvider := &actionproviders.Random{}
+	actionHoldicator := &Nothing{}
 
-	engine := engine.New(entityMapStore, actorStore, actionStore, timeline, randomActionProvider)
+	engine := engine.New(entityMapStore, actorStore, timeline, actionHoldicator, actionHoldicator)
 
 	game := NewGame(engine)
 	timeline.SetCurrentTick(1)
