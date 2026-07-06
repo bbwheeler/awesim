@@ -14,16 +14,6 @@ type Engine struct {
 	actionProvider actionProvider
 }
 
-type Actor interface {
-	GetNextActionID() (string, error)
-	ProvideNextAction() (string, error)
-	GetID() string
-}
-
-type Action interface {
-	Resolve() error
-}
-
 type timeline interface {
 	GetCurrentTick() (core.Tick, error)
 	SetCurrentTick(tick core.Tick) error
@@ -33,12 +23,12 @@ type timeline interface {
 }
 
 type actorProvider interface {
-	GetActor(actorID string) Actor
+	GetActor(actorID string) core.Actor
 	GetAllActorIDs() ([]string, error)
 }
 
 type actionProvider interface {
-	GetAction(actionID string) (Action, error)
+	GetAction(actionID string) core.Action
 }
 
 type entityProvider interface {
@@ -161,12 +151,9 @@ func (e *Engine) updateActions() error {
 }
 
 func (e *Engine) resolveAction(actionID string) error {
-	action, err := e.actionProvider.GetAction(actionID)
-	if err != nil {
-		return err
-	}
+	action := e.actionProvider.GetAction(actionID)
 
-	err = action.Resolve()
+	err := action.Resolve()
 	if err != nil {
 		return err
 	}

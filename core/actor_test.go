@@ -13,7 +13,7 @@ func TestNewActor(t *testing.T) {
 
 	testActor := core.NewActor(dao)
 
-	isActor, err := testActor.GetAttribute(core.IsActorAttribute)
+	isActor, err := dao.GetAttribute(testActor.GetID(), core.IsActorAttribute)
 
 	if err != nil {
 		t.Fatal(err)

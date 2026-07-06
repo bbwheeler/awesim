@@ -12,7 +12,8 @@ func TestEndToEnd(t *testing.T) {
 	const startTick core.Tick = core.Tick(1)
 
 	store := storage.NewEntityMapStore()
-	timeline := core.NewTimeline(store)
+	actionProvider := core.NewActionProvider(store)
+	timeline := core.NewTimeline(store, *actionProvider)
 	actorOne := core.NewActor(store)
 	actionOne, err := core.NewAction(actorOne.GetID(), 10, store)
 	if err != nil {

@@ -20,8 +20,9 @@ func NewGame(engine *engine.Engine) *Game {
 
 func main() {
 	entityMapStore := storage.NewEntityMapStore()
-	timeline := core.NewTimeline(entityMapStore)
 	actorProvider := core.NewActorProvider(entityMapStore)
+	actionProvider := core.NewActionProvider(entityMapStore)
+	timeline := core.NewTimeline(entityMapStore, *actionProvider)
 
 	// actionDecider := action_deciders.NewDoNothingDecider(entityMapStore, timeline)
 	// actionResolver := &action_resolvers.NoAction{}
@@ -30,7 +31,7 @@ func main() {
 	game := NewGame(engine)
 	timeline.SetCurrentTick(1)
 	fmt.Println("Game Start")
-	err := game.Run()
+	err := game.engine.ExecuteToTick(1)
 	if err != nil {
 		fmt.Printf("Game Error: %v\n", err)
 	} else {

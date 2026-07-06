@@ -5,25 +5,42 @@ import "fmt"
 const actionInvoker string = "ACTION_INVOKER"
 const ActionDuration string = "ACTION_DURATION"
 
-type Action struct {
+type Action interface {
+	Resolve() error
+	SetAttribute(attribute string, value any) error
+	GetAttribute(attribute string) (any, error)
+	GetDuration() (Tick, error)
+}
+
+type ActionEntity struct {
 	Entity
 }
 
-func NewAction(invokerID string, duration Tick, store EntityStore) (*Action, error) {
+type ActionProvider struct {
+	entityProvider EntityProvider
+}
+
+func NewActionProvider(entityProvider EntityProvider) *ActionProvider {
+	return &ActionProvider{
+		entityProvider: entityProvider,
+	}
+}
+
+func NewAction(invokerID string, duration Tick, store EntityStore) (*ActionEntity, error) {
 	entity := NewEntity(store)
 	entity.SetAttribute(actionInvoker, invokerID)
 	entity.SetAttribute(ActionDuration, duration)
-	return &Action{
+	return &ActionEntity{
 		Entity: *entity,
 	}, nil
 }
 
-func GetAction(actionID string, entityStore EntityStore) *Action {
-	entity := GetEntity(actionID, entityStore)
+func (p *ActionProvider) GetAction(actionID string) Action {
+	entity := p.entityProvider.GetEntity(actionID)
 	return asAction(entity)
 }
 
-func (a *Action) GetInvoker() (string, error) {
+func (a *ActionEntity) GetInvoker() (string, error) {
 	invokerID, err := a.GetAttribute(actionInvoker)
 	if err != nil {
 		return "", fmt.Errorf("Unable to retrieve invoker for action %v: %w", a.GetID(), err)
@@ -34,7 +51,7 @@ func (a *Action) GetInvoker() (string, error) {
 	return invokerID.(string), nil
 }
 
-func (a *Action) GetDuration() (Tick, error) {
+func (a *ActionEntity) GetDuration() (Tick, error) {
 	duration, err := a.GetAttribute(ActionDuration)
 	if err != nil {
 		return 0, err
@@ -44,12 +61,17 @@ func (a *Action) GetDuration() (Tick, error) {
 	return durationTick, err
 }
 
-func (a *Action) FinishAction() error {
+func (a *ActionEntity) FinishAction() error {
 	return a.store.RemoveAttribute(a.GetID(), actionStartTickAttribute)
 }
 
-func asAction(e *Entity) *Action {
-	return &Action{
+func (a *ActionEntity) Resolve() error {
+	// TODO: Implement
+	return nil
+}
+
+func asAction(e *Entity) *ActionEntity {
+	return &ActionEntity{
 		Entity: *e,
 	}
 }

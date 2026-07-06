@@ -14,12 +14,14 @@ const ErrNoPendingAction = errString("no pending action found")
 type Tick = int64
 
 type Timeline struct {
-	store EntityStore
+	store          EntityStore
+	actionProvider ActionProvider
 }
 
-func NewTimeline(entityStore EntityStore) *Timeline {
+func NewTimeline(entityStore EntityStore, actionProvider ActionProvider) *Timeline {
 	return &Timeline{
-		store: entityStore,
+		store:          entityStore,
+		actionProvider: actionProvider,
 	}
 }
 
@@ -38,11 +40,11 @@ func (t *Timeline) AddAction(actionID string) error {
 	if err != nil {
 		return err
 	}
-	action := GetAction(actionID, t.store)
+	action := t.actionProvider.GetAction(actionID)
 	return action.SetAttribute(actionStartTickAttribute, tick)
 }
 
-func (t *Timeline) RemoveAction(action *Action) error {
+func (t *Timeline) RemoveAction(action *ActionEntity) error {
 	return action.RemoveAttribute(actionStartTickAttribute)
 }
 
@@ -72,7 +74,7 @@ func (t *Timeline) GetCurrentTick() (Tick, error) {
 	return ToTick(currentTick)
 }
 
-func (t *Timeline) GetPendingActionIDWithMaxTick(maxTick Tick) (string, error) {
+func (t *Timeline) GetNextActionUpTo(maxTick Tick) (string, error) {
 	actionID, err := t.GetPendingActionID()
 	if err != nil {
 		return "", err
@@ -120,7 +122,7 @@ func (t *Timeline) GetPendingActionID() (string, error) {
 }
 
 func (t *Timeline) GetStartTickOfAction(actionID string) (Tick, error) {
-	a := GetAction(actionID, t.store)
+	a := t.actionProvider.GetAction(actionID)
 	startTick, err := a.GetAttribute(actionStartTickAttribute)
 	if startTick == nil {
 		return 0, fmt.Errorf("Action %v has no start tick", a)
@@ -136,7 +138,7 @@ func (t *Timeline) GetEndTickOfAction(actionID string) (Tick, error) {
 	if err != nil {
 		return 0, err
 	}
-	action := GetAction(actionID, t.store)
+	action := t.actionProvider.GetAction(actionID)
 	duration, err := action.GetDuration()
 	if err != nil {
 		return 0, err
@@ -148,7 +150,7 @@ func (t *Timeline) SetCurrentTick(tick Tick) error {
 	return t.store.SetAttribute(timelineEntityID, currentTickAttribute, tick)
 }
 
-func indexOfAction(action *Action, actions []*Action) (int, error) {
+func indexOfAction(action *ActionEntity, actions []*ActionEntity) (int, error) {
 	for index, a := range actions {
 		if a == action {
 			return index, nil
