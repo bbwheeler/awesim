@@ -1,7 +1,5 @@
 package core
 
-import "github.com/google/uuid"
-
 type errString string
 
 func (e errString) Error() string {
@@ -24,14 +22,10 @@ type EntityStore interface {
 	RemoveAttribute(entityId string, attributeId string) error
 	GetEntitiesWithAttribute(attributeID string, attributeValue any) ([]string, error)
 	GetEntitiesWithAttributeType(attribute string) ([]string, error)
+	NewEntity() (*Entity, error)
 }
 
-func NewEntity(store EntityStore) *Entity {
-	return GetEntity(uuid.New().String(), store)
-
-}
-
-func GetEntity(id string, store EntityStore) *Entity {
+func EntityFromID(id string, store EntityStore) *Entity {
 	return &Entity{
 		id:    id,
 		store: store,

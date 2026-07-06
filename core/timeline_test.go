@@ -11,16 +11,21 @@ import (
 func TestEndToEnd(t *testing.T) {
 	const startTick core.Tick = core.Tick(1)
 
-	store := storage.NewEntityMapStore()
-	actionProvider := core.NewActionProvider(store)
-	timeline := core.NewTimeline(store, *actionProvider)
-	actorOne := core.NewActor(store)
-	actionOne, err := core.NewAction(actorOne.GetID(), 10, store)
+	entityStore := storage.NewEntityMapStore()
+	actionStore := core.NewActionStore(entityStore)
+	actorStore := core.NewActorStore(entityStore)
+	timeline := core.NewTimeline(actionStore)
+	actorOne, err := actorStore.NewActor()
 	if err != nil {
 		t.Error(err)
 	}
-	actorTwo := core.NewActor(store)
-	actionTwo, err := core.NewAction(actorTwo.GetID(), 5, store)
+
+	actionOne, err := actionStore.NewAction(actorOne.GetID(), 10)
+	if err != nil {
+		t.Error(err)
+	}
+	actorTwo, err := actorStore.NewActor()
+	actionTwo, err := actionStore.NewAction(actorTwo.GetID(), 5)
 	if err != nil {
 		t.Error(err)
 	}

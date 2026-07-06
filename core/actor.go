@@ -8,47 +8,35 @@ const IsActorAttribute string = "IsActor"
 
 const ErrActionNotFoundForActor = errString("action not found for actor")
 
-type ActorEntity struct {
-	Entity
+type ActorStore struct {
+	EntityStore
 }
 
-type Actor interface {
-	GetNextActionID() (string, error)
-	ProvideNextAction() (string, error)
-	GetID() string
-}
-
-type ActorProvider struct {
-	entityProvider EntityProvider
-}
-type EntityProvider interface {
-	GetEntitiesWithAttribute(entityID string, attribute any) ([]string, error)
-	GetEntity(entityID string) *Entity
-}
-
-func NewActorProvider(entityProvider EntityProvider) *ActorProvider {
-	return &ActorProvider{
-		entityProvider: entityProvider,
+func NewActorStore(entityStore EntityStore) *ActorStore {
+	return &ActorStore{
+		EntityStore: entityStore,
 	}
 }
 
-func NewActor(store EntityStore) Actor {
-	entity := NewEntity(store)
-	entity.SetAttribute(IsActorAttribute, true)
-	return asActor(entity)
+func (s *ActorStore) NewActor() (*Entity, error) {
+	entity, err := s.NewEntity()
+	if err != nil {
+		return nil, err
+	}
+	err = entity.SetAttribute(IsActorAttribute, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return entity, nil
 }
 
-func (p *ActorProvider) GetAllActorIDs() ([]string, error) {
-	return p.entityProvider.GetEntitiesWithAttribute(IsActorAttribute, true)
+func (p *ActorStore) GetAllActorIDs() ([]string, error) {
+	return p.GetEntitiesWithAttribute(IsActorAttribute, true)
 }
 
-func (p *ActorProvider) GetActor(actorID string) Actor {
-	entity := p.entityProvider.GetEntity(actorID)
-	return asActor(entity)
-}
-
-func (a *ActorEntity) GetNextActionID() (string, error) {
-	actionIDs, err := a.store.GetEntitiesWithAttribute(actionInvoker, a.GetID())
+func (a *ActorStore) GetNextActionID(actorID string) (string, error) {
+	actionIDs, err := a.GetEntitiesWithAttribute(actionInvoker, actorID)
 	if err != nil {
 		return "", err
 	}
@@ -59,14 +47,4 @@ func (a *ActorEntity) GetNextActionID() (string, error) {
 		return "", ErrActionNotFoundForActor
 	}
 	return actionIDs[0], nil
-}
-
-func (a *ActorEntity) ProvideNextAction() (string, error) {
-	panic("unimplemented")
-}
-
-func asActor(e *Entity) *ActorEntity {
-	return &ActorEntity{
-		Entity: *e,
-	}
 }

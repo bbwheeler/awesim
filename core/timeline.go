@@ -13,15 +13,18 @@ const ErrNoPendingAction = errString("no pending action found")
 
 type Tick = int64
 
-type Timeline struct {
-	store          EntityStore
-	actionProvider ActionProvider
+type TimedEntityStore interface {
+	EntityStore
+	GetDuration(entityID string) (Tick, error)
 }
 
-func NewTimeline(entityStore EntityStore, actionProvider ActionProvider) *Timeline {
+type Timeline struct {
+	store TimedEntityStore
+}
+
+func NewTimeline(entityStore TimedEntityStore) *Timeline {
 	return &Timeline{
-		store:          entityStore,
-		actionProvider: actionProvider,
+		store: entityStore,
 	}
 }
 
@@ -40,11 +43,11 @@ func (t *Timeline) AddAction(actionID string) error {
 	if err != nil {
 		return err
 	}
-	action := t.actionProvider.GetAction(actionID)
-	return action.SetAttribute(actionStartTickAttribute, tick)
+
+	return t.store.SetAttribute(actionID, actionStartTickAttribute, tick)
 }
 
-func (t *Timeline) RemoveAction(action *ActionEntity) error {
+func (t *Timeline) RemoveAction(action *Entity) error {
 	return action.RemoveAttribute(actionStartTickAttribute)
 }
 
@@ -65,10 +68,6 @@ func (t *Timeline) GetCurrentTick() (Tick, error) {
 	}
 	if currentTick == nil {
 		return 0, fmt.Errorf("no current tick")
-	}
-
-	if err != nil {
-		return 0, err
 	}
 
 	return ToTick(currentTick)
@@ -99,7 +98,7 @@ func (t *Timeline) GetPendingActionID() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	actionIDs, err := getActions(t.store)
+	actionIDs, err := t.getActions()
 	if err != nil {
 		return "", err
 	}
@@ -122,11 +121,7 @@ func (t *Timeline) GetPendingActionID() (string, error) {
 }
 
 func (t *Timeline) GetStartTickOfAction(actionID string) (Tick, error) {
-	a := t.actionProvider.GetAction(actionID)
-	startTick, err := a.GetAttribute(actionStartTickAttribute)
-	if startTick == nil {
-		return 0, fmt.Errorf("Action %v has no start tick", a)
-	}
+	startTick, err := t.store.GetAttribute(actionID, actionStartTickAttribute)
 	if err != nil {
 		return 0, err
 	}
@@ -138,8 +133,8 @@ func (t *Timeline) GetEndTickOfAction(actionID string) (Tick, error) {
 	if err != nil {
 		return 0, err
 	}
-	action := t.actionProvider.GetAction(actionID)
-	duration, err := action.GetDuration()
+
+	duration, err := t.store.GetDuration(actionID)
 	if err != nil {
 		return 0, err
 	}
@@ -150,17 +145,17 @@ func (t *Timeline) SetCurrentTick(tick Tick) error {
 	return t.store.SetAttribute(timelineEntityID, currentTickAttribute, tick)
 }
 
-func indexOfAction(action *ActionEntity, actions []*ActionEntity) (int, error) {
+func indexOfAction(action *Entity, actions []*Entity) (int, error) {
 	for index, a := range actions {
-		if a == action {
+		if a.GetID() == action.GetID() {
 			return index, nil
 		}
 	}
 	return 0, fmt.Errorf("action %v not found in action array %v", action, actions)
 }
 
-func getActions(store EntityStore) ([]string, error) {
-	return store.GetEntitiesWithAttributeType(actionStartTickAttribute)
+func (t *Timeline) getActions() ([]string, error) {
+	return t.store.GetEntitiesWithAttributeType(actionStartTickAttribute)
 }
 
 func ToTick(v interface{}) (Tick, error) {
