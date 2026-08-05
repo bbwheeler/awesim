@@ -24,15 +24,6 @@ type timeline interface {
 }
 type entityStore interface {
 	RemoveEntity(entityID string) error
-
-	GetAttribute(entityId string, attributeId string) (any, error)
-	HasAttribute(entityId string, attributeId string) (bool, error)
-	SetAttribute(entityId string, attributeId string, value any) error
-	RemoveAttribute(entityId string, attributeId string) error
-
-	GetEntitiesWithAttributes(attributes map[string]any) ([]string, error)
-	GetEntitiesWithAttributeType(attribute string) ([]string, error)
-	GetEntitiesWithAttribute(attribute string, value any) ([]string, error)
 }
 
 type actorStore interface {

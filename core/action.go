@@ -21,8 +21,16 @@ func (a *ActionStore) NewAction(invokerID string, duration Tick) (*Entity, error
 		return nil, err
 	}
 
-	entity.SetAttribute(actionInvoker, invokerID)
-	entity.SetAttribute(ActionDuration, duration)
+	err = entity.SetAttribute(actionInvoker, invokerID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = entity.SetAttribute(ActionDuration, duration)
+	if err != nil {
+		return nil, err
+	}
+
 	return entity, nil
 }
 
