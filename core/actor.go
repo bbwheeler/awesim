@@ -1,36 +1,42 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const IsActorAttribute string = "IsActor"
 
 const ErrActionNotFoundForActor = errString("action not found for actor")
 
-type Actor struct {
-	Entity
+type ActorStore struct {
+	EntityStore
 }
 
-type EntityProvider interface {
-	GetEntitiesWithAttribute(entityID string, attribute any) ([]string, error)
+func NewActorStore(entityStore EntityStore) *ActorStore {
+	return &ActorStore{
+		EntityStore: entityStore,
+	}
 }
 
-func NewActor(store EntityStore) *Actor {
-	entity := NewEntity(store)
-	entity.SetAttribute(IsActorAttribute, true)
-	return asActor(entity)
+func (s *ActorStore) NewActor() (*Entity, error) {
+	entity, err := s.NewEntity()
+	if err != nil {
+		return nil, err
+	}
+	err = entity.SetAttribute(IsActorAttribute, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return entity, nil
 }
 
-func GetAllActors(entityProvider EntityProvider) ([]string, error) {
-	return entityProvider.GetEntitiesWithAttribute(IsActorAttribute, true)
+func (p *ActorStore) GetAllActorIDs() ([]string, error) {
+	return p.GetEntitiesWithAttribute(IsActorAttribute, true)
 }
 
-func GetActor(actorID string, entityStore EntityStore) *Actor {
-	entity := GetEntity(actorID, entityStore)
-	return asActor(entity)
-}
-
-func (a *Actor) GetNextAction() (string, error) {
-	actionIDs, err := a.store.GetEntitiesWithAttribute(actionInvoker, a.GetID())
+func (a *ActorStore) GetNextActionID(actorID string) (string, error) {
+	actionIDs, err := a.GetEntitiesWithAttribute(actionInvoker, actorID)
 	if err != nil {
 		return "", err
 	}
@@ -41,10 +47,4 @@ func (a *Actor) GetNextAction() (string, error) {
 		return "", ErrActionNotFoundForActor
 	}
 	return actionIDs[0], nil
-}
-
-func asActor(e *Entity) *Actor {
-	return &Actor{
-		Entity: *e,
-	}
 }

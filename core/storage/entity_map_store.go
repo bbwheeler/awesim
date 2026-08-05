@@ -3,6 +3,9 @@ package storage
 import (
 	"fmt"
 	"strings"
+
+	"github.com/bbwheeler/awesim/core"
+	"github.com/google/uuid"
 )
 
 type EntityMapStore struct {
@@ -14,6 +17,10 @@ func NewEntityMapStore() *EntityMapStore {
 	return &EntityMapStore{
 		attributeMap: attributes,
 	}
+}
+
+func (s *EntityMapStore) NewEntity() (*core.Entity, error) {
+	return core.EntityFromID(uuid.NewString(), s), nil
 }
 
 func (entityMapStore *EntityMapStore) RemoveEntity(id string) error {
@@ -54,6 +61,10 @@ func (entityMapStore *EntityMapStore) SetAttribute(entityID string, attributeID 
 func (entityMapStore *EntityMapStore) RemoveAttribute(entityID string, attributeID string) error {
 	delete(entityMapStore.attributeMap, getKey(entityID, attributeID))
 	return nil
+}
+
+func (entityMapStore *EntityMapStore) GetEntity(entityID string) *core.Entity {
+	return core.EntityFromID(entityID, entityMapStore)
 }
 
 func (entityMapStore *EntityMapStore) GetEntitiesWithAttributeType(attribute string) ([]string, error) {
