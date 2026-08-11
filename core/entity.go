@@ -1,5 +1,7 @@
 package core
 
+const ErrEntityDoesNotHaveAttribute = errString("attribute not found for entity")
+
 type errString string
 
 func (e errString) Error() string {

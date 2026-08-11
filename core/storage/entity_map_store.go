@@ -36,7 +36,7 @@ func (entityMapStore *EntityMapStore) GetAttribute(entityID string, attributeID 
 	key := getKey(entityID, attributeID)
 	val, ok := entityMapStore.attributeMap[key]
 	if !ok {
-		return nil, fmt.Errorf("Entity %s does not have attribute %s", entityID, attributeID)
+		return nil, fmt.Errorf("Entity %s does not have attribute %s: %w", entityID, attributeID, core.ErrEntityDoesNotHaveAttribute)
 	}
 	return val, nil
 }

@@ -133,10 +133,6 @@ func (e *Engine) updateActions() error {
 		if err != nil {
 			return err
 		}
-		// actionID, err := e.actorStore.GetNextActionID(actorID)
-		// if err != nil {
-		// 	return err
-		// }
 
 		if actionID != "" {
 			newActions = append(newActions, actionID)
