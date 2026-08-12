@@ -14,9 +14,6 @@ High-level flow per tick:
 
 ## Critical Bugs & Stability Issues
 
-### 1. `Engine.Run()` is an infinite loop — no exit condition
-`engine/Engine.go:86-94` — The `Run()` method spins forever because `ended` is never set to `true`. Combined with the `NoAction` resolver (which returns `(false, nil)`) and a tick-1 start, this will call `RunCurrentTurn()` infinitely. This is a live fire hazard for consumers who invoke `Run()`.
-
 ### 2. `getActorsThatNeedActions` has dead code: checks `actionID == ""`
 `engine/Engine.go:137` — After calling `GetNextAction()`, the code checks `err == nil && actionID == ""`, but `GetNextAction()` at `core/actor.go:32-44` returns an error (never empty string) when no action exists. The `actionID == ""` branch is unreachable. The logic only works because of Go's `err != nil` fallthrough, making it confusing to read and maintain.
 
