@@ -9,17 +9,23 @@ import (
 )
 
 func TestEndToEnd(t *testing.T) {
-	const startTick int64 = int64(1)
+	const startTick core.Tick = core.Tick(1)
 
-	store := storage.NewEntityMapStore()
-	timeline := core.NewTimeline(store)
-	actorOne := core.NewActor(store)
-	actionOne, err := core.NewAction(actorOne.GetID(), 10, store)
+	entityStore := storage.NewEntityMapStore()
+	actionStore := core.NewActionStore(entityStore)
+	actorStore := core.NewActorStore(entityStore)
+	timeline := core.NewTimeline(actionStore)
+	actorOne, err := actorStore.NewActor()
 	if err != nil {
 		t.Error(err)
 	}
-	actorTwo := core.NewActor(store)
-	actionTwo, err := core.NewAction(actorTwo.GetID(), 5, store)
+
+	actionOne, err := actionStore.NewAction(actorOne.GetID(), 10)
+	if err != nil {
+		t.Error(err)
+	}
+	actorTwo, err := actorStore.NewActor()
+	actionTwo, err := actionStore.NewAction(actorTwo.GetID(), 5)
 	if err != nil {
 		t.Error(err)
 	}

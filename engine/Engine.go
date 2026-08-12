@@ -8,55 +8,43 @@ import (
 )
 
 type Engine struct {
-	entityProvider entityProvider
-	actionDecider  actionDecider
+	entityStore    entityStore
+	actorStore     actorStore
 	timeline       timeline
+	actionProvider actionProvider
 	actionResolver actionResolver
 }
 
-type Actor interface {
-	GetNextActionID() (string, error)
-	GetID() string
-}
-
 type timeline interface {
-	GetCurrentTick() (int64, error)
-	SetCurrentTick(tick int64) error
+	GetCurrentTick() (core.Tick, error)
+	SetCurrentTick(tick core.Tick) error
 	GetPendingActionID() (string, error)
-	GetPendingActionIDWithMaxTick(maxTick int64) (string, error)
+	GetNextActionUpTo(maxTick core.Tick) (string, error)
 	AddActions(actionIDs []string) error
 }
-
-type actorProvider interface {
-	GetActor(actorID string) (Actor, error)
-}
-
-type entityProvider interface {
+type entityStore interface {
 	RemoveEntity(entityID string) error
-
-	GetAttribute(entityId string, attributeId string) (any, error)
-	HasAttribute(entityId string, attributeId string) (bool, error)
-	SetAttribute(entityId string, attributeId string, value any) error
-	RemoveAttribute(entityId string, attributeId string) error
-
-	GetEntitiesWithAttributes(attributes map[string]any) ([]string, error)
-	GetEntitiesWithAttributeType(attribute string) ([]string, error)
-	GetEntitiesWithAttribute(attribute string, value any) ([]string, error)
 }
 
-type actionDecider interface {
-	DecideActionForActor(actorID string) (string, error)
+type actorStore interface {
+	GetAllActorIDs() ([]string, error)
+	GetNextActionID(actorID string) (string, error)
+}
+
+type actionProvider interface {
+	ProvideNextActionFor(actorID string) (string, error)
 }
 
 type actionResolver interface {
-	ResolveAction(actionID string) (bool, error)
+	ResolveAction(actionID string) error
 }
 
-func New(entityProvider entityProvider, actionDecider actionDecider, timeline timeline, actionResolver actionResolver) *Engine {
+func New(entityStore entityStore, actorStore actorStore, timeline timeline, actionProvider actionProvider, actionResolver actionResolver) *Engine {
 	return &Engine{
-		entityProvider: entityProvider,
-		actionDecider:  actionDecider,
+		entityStore:    entityStore,
+		actorStore:     actorStore,
 		timeline:       timeline,
+		actionProvider: actionProvider,
 		actionResolver: actionResolver,
 	}
 }
@@ -83,18 +71,7 @@ func (e *Engine) RunCurrentTurn() error {
 	return nil
 }
 
-func (e *Engine) Run() error {
-	var ended bool
-	for !ended {
-		err := e.RunCurrentTurn()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (e *Engine) ExecuteToTick(targetTick int64) error {
+func (e *Engine) ExecuteToTick(targetTick core.Tick) error {
 	currentTick, err := e.timeline.GetCurrentTick()
 	if err != nil {
 		return err
@@ -107,11 +84,12 @@ func (e *Engine) ExecuteToTick(targetTick int64) error {
 	}
 
 	for {
-		err = e.decideActions()
+		err = e.updateActions()
 		if err != nil {
 			return err
 		}
-		firstActionID, err := e.timeline.GetPendingActionIDWithMaxTick(targetTick)
+
+		firstActionID, err := e.timeline.GetNextActionUpTo(targetTick)
 		if err != nil {
 			if errors.Is(err, core.ErrNoPendingAction) {
 				return nil
@@ -127,14 +105,14 @@ func (e *Engine) ExecuteToTick(targetTick int64) error {
 }
 
 func (e *Engine) getActorsThatNeedActions() ([]string, error) {
-	allActorIDs, err := core.GetAllActors(e.entityProvider)
+	allActorIDs, err := e.actorStore.GetAllActorIDs()
 	if err != nil {
 		return nil, err
 	}
 	var actorsNeedingActions []string
 	for _, actorID := range allActorIDs {
-		actor := core.GetActor(actorID, e.entityProvider)
-		if actionID, err := actor.GetNextAction(); err == nil && actionID == "" {
+
+		if actionID, err := e.actorStore.GetNextActionID(actorID); err == nil && actionID == "" {
 			actorsNeedingActions = append(actorsNeedingActions, actorID)
 		} else if err != nil {
 			return nil, err
@@ -143,7 +121,7 @@ func (e *Engine) getActorsThatNeedActions() ([]string, error) {
 	return actorsNeedingActions, nil
 }
 
-func (e *Engine) decideActions() error {
+func (e *Engine) updateActions() error {
 	actorsNeedingActions, err := e.getActorsThatNeedActions()
 	if err != nil {
 		return err
@@ -151,25 +129,27 @@ func (e *Engine) decideActions() error {
 
 	var newActions []string
 	for _, actorID := range actorsNeedingActions {
-		actionID, err := e.actionDecider.DecideActionForActor(actorID)
+		actionID, err := e.actionProvider.ProvideNextActionFor(actorID)
 		if err != nil {
 			return err
 		}
-		if actionID == "" {
-			continue
+		// actionID, err := e.actorStore.GetNextActionID(actorID)
+		// if err != nil {
+		// 	return err
+		// }
+
+		if actionID != "" {
+			newActions = append(newActions, actionID)
 		}
-		newActions = append(newActions, actionID)
 	}
 	return e.timeline.AddActions(newActions)
 }
 
 func (e *Engine) resolveAction(actionID string) error {
-	resolved, err := e.actionResolver.ResolveAction(actionID)
+	err := e.actionResolver.ResolveAction(actionID)
 	if err != nil {
 		return err
 	}
-	if !resolved {
-		return fmt.Errorf("action %v was not resolved", actionID)
-	}
-	return e.entityProvider.RemoveEntity(actionID)
+
+	return e.entityStore.RemoveEntity(actionID)
 }
