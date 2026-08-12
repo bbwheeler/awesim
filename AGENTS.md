@@ -42,6 +42,8 @@ No lint, typecheck, fmt, or CI config is present. Tests are standard `testing` p
 
 ## Gotchas
 
+- **Zero-state storage**: All entity data is keyed-value pairs with no in-memory state — the engine can shut down at any point and restart from a snapshot or any tick cleanly.
+
 - **Attribute types**: `EntityMapStore.SetAttribute` only accepts `string`, `int64`, `float64`, `bool`. Passing anything else (e.g. `uint64`, `nil`) returns an error at runtime.
 - **Key format**: Attributes are stored as `entityID#attributeID` strings in one flat map. An entity with no attributes doesn't exist in the store — discovery relies on querying attribute values rather than listing entities.
 - **Timeline must be seeded**: The engine panics if no timeline entity exists. Call `timeline.SetCurrentTick(1)` before running.
